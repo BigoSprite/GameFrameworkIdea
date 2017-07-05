@@ -4,6 +4,11 @@
 #include "GuideController.h"
 #include "WorldMapScene.h"
 #include "finalScene.h"
+#include "FailLayer.h"
+#include "GamePauseLayer.h"
+
+
+
 GameSelectionController::GameSelectionController():vy_girl1(0.5f)
 {}
 
@@ -166,7 +171,7 @@ void GameSelectionController::gameStart1(cocos2d::Ref * r)
 	log("game start 1");
 
 	Director::getInstance()->replaceScene(
-		TransitionFade::create(2, /*GuideController*/ finalScene::createScene()));
+		TransitionFade::create(2, /*GuideController*/ GamePauseLayer::createScene()));
 }
 
 void GameSelectionController::gameStart2(cocos2d::Ref * r)
