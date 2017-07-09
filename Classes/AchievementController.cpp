@@ -17,12 +17,12 @@ bool AchievementController::init()
 
 	Size visiableSize = Director::getInstance()->getVisibleSize();
 
-	/// 添加视图
+	// 添加视图
 	m_pView = AchievementView::create();
 	m_pView->setPosition(Vec2(visiableSize.width / 2, visiableSize.height / 2));
 	this->addChild(m_pView, 1);
 
-	/// 订阅消息
+	// 订阅消息
 	auto dispatcher = Director::getInstance()->getEventDispatcher();
 
 	auto customTrophyListener = EventListenerCustom::create(
