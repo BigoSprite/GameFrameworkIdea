@@ -17,12 +17,12 @@ bool AchievementController::init()
 
 	Size visiableSize = Director::getInstance()->getVisibleSize();
 
-	/// Ìí¼ÓÊÔÍ¼
+	/// Add View
 	m_pView = AchievementView::create();
 	m_pView->setPosition(Vec2(visiableSize.width / 2, visiableSize.height / 2));
 	this->addChild(m_pView, 1);
 
-	/// ¶©ÔÄÏûÏ¢
+	/// Subscribe Message
 	auto dispatcher = Director::getInstance()->getEventDispatcher();
 
 	auto customTrophyListener = EventListenerCustom::create(
