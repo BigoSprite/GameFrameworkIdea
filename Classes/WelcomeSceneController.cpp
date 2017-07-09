@@ -2,7 +2,7 @@
 #include "HelloWorldScene.h"
 #include "GameSelectionController.h"
 
-#include "AchievementController.h"
+#include "BombIconView.h"
 
 WelcomeSceneController::WelcomeSceneController():vy(5),vx(2)
 {}
@@ -30,7 +30,7 @@ bool WelcomeSceneController::init()
 
 
 	// test
-	auto lay = AchievementController::create();
+	auto lay = BombIconView::create();
 	addChild(lay, 5);
 
 
@@ -126,7 +126,7 @@ bool WelcomeSceneController::init()
 
 
 	//±êÌâ
-	const char *str_title1 = ((String*)dic->objectForKey("welcomeTitle1"))->_string.c_str();
+	const char *str_title1 = "MVC¼Ü¹¹";
 	m_pTitle1 = Label::createWithTTF(str_title1, "fonts/hbb.ttf", 130);
 	m_pTitle1->setPosition(visibleSize.width / 2 + 90, visibleSize.height / 2 + 320);
 	m_pTitle1->setColor(Color3B(255, 255, 255));
