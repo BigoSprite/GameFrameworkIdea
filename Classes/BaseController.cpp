@@ -15,3 +15,13 @@ bool BaseController::init()
 
 	return ret;
 }
+
+void BaseController::onEnter()
+{
+	Layer::onEnter();
+}
+
+void BaseController::onExit()
+{
+	Layer::onExit();
+}

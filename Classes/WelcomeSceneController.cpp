@@ -2,6 +2,7 @@
 #include "HelloWorldScene.h"
 #include "GameSelectionController.h"
 
+#include "AchievementController.h"
 
 WelcomeSceneController::WelcomeSceneController():vy(5),vx(2)
 {}
@@ -22,7 +23,19 @@ bool WelcomeSceneController::init()
 	if (!BaseController::init())
 		return false;
 
+
+
 	Size visibleSize = Director::getInstance()->getVisibleSize();
+
+
+
+	// test
+	auto lay = AchievementController::create();
+	addChild(lay, 5);
+
+
+
+
 	
 	// ±³¾°
 	m_pBackgroundSprite1 = Sprite::create("welcome_bg1.png");

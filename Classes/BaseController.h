@@ -11,4 +11,7 @@ public:
 
 	virtual bool init();
 	CREATE_FUNC(BaseController);
+
+	virtual void onEnter();
+	virtual void onExit();
 };
