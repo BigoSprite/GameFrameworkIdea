@@ -2,7 +2,7 @@
 #include "HelloWorldScene.h"
 #include "GameSelectionController.h"
 
-#include "BombIconView.h"
+#include "ChangeIconView.h"
 
 WelcomeSceneController::WelcomeSceneController():vy(5),vx(2)
 {}
@@ -30,7 +30,7 @@ bool WelcomeSceneController::init()
 
 
 	// test
-	auto lay = BombIconView::create();
+	auto lay = ChangeIconView::create();
 	addChild(lay, 5);
 
 
