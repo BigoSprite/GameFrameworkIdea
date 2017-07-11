@@ -10,10 +10,9 @@ class GameSelectionController : public BaseController
 public:
 	GameSelectionController();
 	~GameSelectionController();
-	CREATE_FUNC(GameSelectionController);
-
-	virtual bool init();
 	static cocos2d::Scene* createScene();
+	virtual bool init();
+	CREATE_FUNC(GameSelectionController);
 
 
 	void gameStart1(cocos2d::Ref * r);
@@ -25,10 +24,13 @@ public:
 	//萌妹移动函数
 	void move(float dt);
 
+	//特效函数
+	void particleEffect(Point pos);
+
 private:
 	Sprite* m_pBackgroundSprite;
-	cocos2d::Label * menuTitle1;
-	cocos2d::Label * menuTitle2;
+	Label * menuTitle1;
+	Label * menuTitle2;
 	float vy_girl1; //萌妹y轴速度
 	Sprite* girl;
 

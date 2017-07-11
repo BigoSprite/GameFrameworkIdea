@@ -10,6 +10,14 @@ Game::~Game()
 {
 }
 
+Scene* Game::createScene()
+{
+	auto scene = Scene::create();
+	auto layer = Game::create();
+	scene->addChild(layer);
+	return scene;
+}
+
 bool Game::init()
 {
 	if (!BaseController::init())

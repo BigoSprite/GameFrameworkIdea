@@ -14,6 +14,7 @@ public:
 	~AchievementController();
 	virtual bool init();
 	CREATE_FUNC(AchievementController);
+	static Scene* createScene();
 
 private:
 	AchievementView* m_pView;
@@ -21,6 +22,8 @@ private:
 	void __onTrophyIconTouched(EventCustom* pEvent);
 	void __onInfoIconTouched(EventCustom* pEvent);
 	void __onItemIconTouched(EventCustom* pEvent);
+	void __onBack2WelcomeSceneMsgReceived(EventCustom* pEvent);
+
 };
 
 #endif // _ACHIEVEMENT_CONTROLLER_H_

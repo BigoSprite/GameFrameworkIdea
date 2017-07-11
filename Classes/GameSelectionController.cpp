@@ -5,9 +5,8 @@
 #include "WorldMapScene.h"
 #include "finalScene.h"
 #include "FailLayer.h"
-#include "GamePauseLayer.h"
-
-
+#include "ContinueLastGameController.h"
+#include "Game.h"
 
 GameSelectionController::GameSelectionController():vy_girl1(0.5f)
 {}
@@ -15,11 +14,19 @@ GameSelectionController::GameSelectionController():vy_girl1(0.5f)
 GameSelectionController::~GameSelectionController()
 {}
 
+Scene* GameSelectionController::createScene()
+{
+	auto scene = Scene::create();
+	auto layer = GameSelectionController::create();
+	scene->addChild(layer);
+	return scene;
+}
+
 bool GameSelectionController::init()
 {
 	if (!BaseController::init())
 		return false;
-	//用xml保存中文，记得xml文件要存在resource文件夹里面才行
+
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 
 	Size vs = Director::getInstance()->getVisibleSize();
@@ -30,7 +37,7 @@ bool GameSelectionController::init()
 	addChild(m_pBackgroundSprite);
 
 	// 菜单1
-	MenuItemImage* menu1 = MenuItemImage::create("menu.png", "menu.png", 
+	MenuItemImage* menu1 = MenuItemImage::create("menu.png", "menu.png",
 		CC_CALLBACK_1(GameSelectionController::gameStart1, this));
 	menu1->setScaleX(1.0);
 	menu1->setScaleY(0.8);
@@ -44,7 +51,7 @@ bool GameSelectionController::init()
 	addChild(menuTitle1, 3);
 
 	// 菜单2
-	MenuItemImage* menu2 = MenuItemImage::create("menu.png", "menu.png", 
+	MenuItemImage* menu2 = MenuItemImage::create("menu.png", "menu.png",
 		CC_CALLBACK_1(GameSelectionController::gameStart2, this));
 	menu2->setScaleX(1.0);
 	menu2->setScaleY(0.8);
@@ -132,7 +139,7 @@ bool GameSelectionController::init()
 	auto fi_l2 = FadeIn::create(0.5);
 	auto seq_l2 = Sequence::create(delaytime_l2, fi_l2, NULL);
 	label2->runAction(seq_l2);
-	
+
 	// 透明背景动画
 	ActionInterval * delaytime_bg = CCDelayTime::create(1.5);
 	auto st_bg = ScaleTo::create(0.5, 1.5, 0.8);  //这里的x y比例不是原来图片的大小了，是setscale之后的大小了
@@ -142,7 +149,7 @@ bool GameSelectionController::init()
 
 
 	//后退到主菜单
-	auto back = MenuItemImage::create("back.png", "back.png", 
+	auto back = MenuItemImage::create("back.png", "back.png",
 		CC_CALLBACK_1(GameSelectionController::mainMenu, this));
 	back->setScale(0.5);
 	back->setRotation(180);
@@ -157,21 +164,33 @@ bool GameSelectionController::init()
 	return true;
 }
 
-Scene* GameSelectionController::createScene()
-{
-	auto scene = Scene::create();
-	auto layer = GameSelectionController::create();
-	scene->addChild(layer);
-	return scene;
-}
-
 
 void GameSelectionController::gameStart1(cocos2d::Ref * r)
 {
 	log("game start 1");
 
-	Director::getInstance()->replaceScene(
-		TransitionFade::create(2, /*GuideController*/ GamePauseLayer::createScene()));
+	// 让原来的文字不可见todo
+
+	Size vs = Director::getInstance()->getVisibleSize();
+	particleEffect(Point(vs.width / 2, vs.height - 500));
+	
+	//添加选择层,这里读取数据，如果level不是0，则添加选择层，否则直接开始游戏
+	int globalLevelNum = UserDefault::getInstance()->getIntegerForKey("level_Global");
+
+	if (globalLevelNum != 0)//弹出是否继续游戏的提示框
+	{
+		auto icl = ContinueLastGameController::create();
+		icl->setPosition(0, 0);
+		addChild(icl, 6);
+	}
+	else //否则直接开始游戏
+	{
+		Director::getInstance()->replaceScene(
+			TransitionFade::create(2, Game::createScene()));
+	}
+
+
+
 }
 
 void GameSelectionController::gameStart2(cocos2d::Ref * r)
@@ -183,7 +202,8 @@ void GameSelectionController::gameStart2(cocos2d::Ref * r)
 //回到主菜单
 void GameSelectionController::mainMenu(cocos2d::Ref * r)
 {
-	Director::getInstance()->replaceScene(TransitionFade::create(1.0, WelcomeSceneController::createScene()));
+	Director::getInstance()->replaceScene(
+		TransitionFade::create(1.0, WelcomeSceneController::createScene()));
 }
 
 //萌妹移动函数
@@ -201,4 +221,24 @@ void GameSelectionController::move(float dt)
 	{
 		vy_girl1 = -vy_girl1;
 	}
+}
+
+void GameSelectionController::particleEffect(Point pos)
+{
+
+	ParticleExplosion* effect = ParticleExplosion::create();
+	effect->setTexture(Director::getInstance()->getTextureCache()->addImage("menu.png"));
+	effect->setTotalParticles(10);
+
+	//让其为图片本身的颜色
+	effect->setStartColor(Color4F(255, 255, 255, 255));
+	effect->setEndColor(Color4F(255, 255, 255, 0));
+
+	effect->setStartSize(50.0f);
+
+	effect->setLife(2.6f);
+	effect->setSpeed(200);
+	effect->setSpeedVar(10);
+	effect->setPosition(pos);
+	this->addChild(effect);
 }

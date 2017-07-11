@@ -1,12 +1,9 @@
 #include "WorldMapScene.h"
-#include "WelcomeSceneController.h"
-
-USING_NS_CC;
+#include "WelcomeSceneController.h"// for going back to welcome scene.
 
 WorldMapScene::WorldMapScene()
 {
 }
-
 
 WorldMapScene::~WorldMapScene()
 {
@@ -17,11 +14,11 @@ bool WorldMapScene::init()
 	Layer::init();
 	Size size = Director::getInstance()->getVisibleSize();
 
+	// 背景
 	bg = Sprite::create("worldmap.jpg");
 	bg->setPosition(size.width / 2, size.height / 2);
-	addChild(bg);
+	this->addChild(bg);
 
-	//用xml保存中文，记得xml文件要存在resource文件夹里面才行
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 
 
@@ -106,16 +103,11 @@ bool WorldMapScene::init()
 	gt = GirlTwo::create();
 	gt->setRotation(-90);
 	gt->setScale(0.3);
-
-	if (curLevelNum == 0) {
-		curLevelNum = 1;
-	}
-
-	gt->setPosition(pos_vec[curLevelNum - 1] + Point(-10, -40) + Point(-400, 0));
+	gt->setPosition(pos_vec[curLevelNum /*- 1*/] + Point(-10, -40) + Point(-400, 0));
 	addChild(gt, 3);
 
 	ActionInterval * delay = DelayTime::create(2.0 + curLevelNum*0.3);
-	auto mt_in = MoveTo::create(1.0, pos_vec[curLevelNum - 1] + Point(-10, -10));
+	auto mt_in = MoveTo::create(1.0, pos_vec[curLevelNum /*- 1*/] + Point(-10, -10));
 	auto seq1 = Sequence::create(delay, mt_in, NULL);
 	gt->runAction(seq1);
 
@@ -139,8 +131,6 @@ bool WorldMapScene::init()
 		auto mt_in = MoveTo::create(1.0, pos_vec[i] - Point(10, 0));
 		auto seq1 = Sequence::create(delay, mt_in, NULL);
 		locator->runAction(seq1);
-
-
 	}
 
 	loc = 0;

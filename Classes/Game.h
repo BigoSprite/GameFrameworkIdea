@@ -11,6 +11,7 @@ class Game : public BaseController
 public:
 	Game();
 	~Game();
+	static Scene* createScene();
 	virtual bool init();
 	CREATE_FUNC(Game);
 

@@ -2,7 +2,8 @@
 #include "HelloWorldScene.h"
 #include "GameSelectionController.h"
 
-#include "Game.h"
+#include "AchievementController.h"
+#include "WorldMapScene.h"
 
 WelcomeSceneController::WelcomeSceneController():vy(5),vx(2)
 {}
@@ -18,25 +19,43 @@ Scene* WelcomeSceneController::createScene()
 	return scene;
 }
 
+//判断是否存在存档数据
+void WelcomeSceneController::__initSaveFileInfo()
+{
+	if (!UserDefault::getInstance()->getBoolForKey("exist")) {
+		UserDefault::getInstance()->setBoolForKey("exist", true);
+
+		//初始化环球旅行的关卡数0 和 初始化最高分0 和 目标分数
+		UserDefault::getInstance()->setIntegerForKey("level_Global", 0);
+		UserDefault::getInstance()->setIntegerForKey("level_Global_highestScore", 0);
+		UserDefault::getInstance()->setIntegerForKey("level_Global_targetScore", 1000);
+		UserDefault::getInstance()->setIntegerForKey("level_Global_currentScore", 0);
+		//初始化历史最高分
+		UserDefault::getInstance()->setIntegerForKey("historyBestScore", 0);
+		//初始化单次消去记录
+		UserDefault::getInstance()->setIntegerForKey("singleBest", 0);
+		//初始化超神次数
+		UserDefault::getInstance()->setIntegerForKey("legendaryNum", 0);
+		//初始化道具个数
+		UserDefault::getInstance()->setIntegerForKey("BombNum", 10);
+		UserDefault::getInstance()->setIntegerForKey("ChangeNum", 10);
+		//初始化init分数
+		UserDefault::getInstance()->setIntegerForKey("levelInitScore", 0);
+
+		//写入
+		UserDefault::getInstance()->flush();
+	}
+}
+
 bool WelcomeSceneController::init()
 {
 	if (!BaseController::init())
 		return false;
 
-
+	__initSaveFileInfo();
 
 	Size visibleSize = Director::getInstance()->getVisibleSize();
 
-
-
-	// test
-	auto lay = Game::create();
-	addChild(lay, 5);
-
-
-
-
-	
 	// 背景
 	m_pBackgroundSprite1 = Sprite::create("welcome_bg1.png");
 	m_pBackgroundSprite1->setAnchorPoint(Point(0, 0));
@@ -126,7 +145,7 @@ bool WelcomeSceneController::init()
 
 
 	//标题
-	const char *str_title1 = "MVC架构";
+	const char *str_title1 = "GameFramework Idea";
 	m_pTitle1 = Label::createWithTTF(str_title1, "fonts/hbb.ttf", 130);
 	m_pTitle1->setPosition(visibleSize.width / 2 + 90, visibleSize.height / 2 + 320);
 	m_pTitle1->setColor(Color3B(255, 255, 255));
@@ -195,6 +214,7 @@ bool WelcomeSceneController::init()
 	return true;
 }
 
+// 转到游戏选择场景
 void WelcomeSceneController::_gameStartCallback(cocos2d::Ref *pSender)
 {
 	log("game start...");
@@ -205,14 +225,22 @@ void WelcomeSceneController::_gameStartCallback(cocos2d::Ref *pSender)
 		TransitionFade::create(2, GameSelectionController::createScene()));
 }
 
+// 转到世界地图场景
 void WelcomeSceneController::_gameEndCallback(cocos2d::Ref *pSender)
 {
 	log("game end...");
+
+	Director::getInstance()->replaceScene(
+		TransitionFade::create(0.5f, WorldMapScene::createScene()));
 }
 
+// 转到Achievement场景
 void WelcomeSceneController::_gameOptionCallback(cocos2d::Ref *pSender)
 {
 	log("game option...");
+
+	Director::getInstance()->replaceScene(
+		TransitionFade::create(0.5f, AchievementController::createScene()));
 }
 
 void WelcomeSceneController::_move(float dt)

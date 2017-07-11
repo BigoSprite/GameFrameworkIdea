@@ -168,4 +168,8 @@ void AchievementView::_initMenu()
 void AchievementView::_goBackToMainmenu(Ref * ref)
 {
 	log("go back to main scene...");
+	// 发布消息
+	std::string MSG = BACK_TO_WELCOME_SCENE_MSG;
+	EventCustom eventCustom(MSG);
+	Director::getInstance()->getEventDispatcher()->dispatchEvent(&eventCustom);
 }

@@ -13,6 +13,10 @@ public:
 	CREATE_FUNC(WelcomeSceneController);
 
 private:
+	// 初始化存档信息
+	void __initSaveFileInfo();
+
+private:
 	float vy;  //y方向上移动速度
 	float vx;  //x方向上移动速度
 

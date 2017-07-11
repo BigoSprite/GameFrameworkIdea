@@ -4,44 +4,43 @@
 #include "vector"
 #include "GirlTwo.h"
 using namespace std;
-class WorldMapScene : public cocos2d::Layer
+USING_NS_CC;
+class WorldMapScene : public Layer
 {
 public:
 	WorldMapScene();
 	~WorldMapScene();
 	virtual bool init();
 	CREATE_FUNC(WorldMapScene);
-	static cocos2d::Scene * createScene();
+	static Scene * createScene();
 
-	void backToMenu(cocos2d::Ref * r);
+	void backToMenu(Ref * r);
 
 	void traceMove();
 
-	void previousLocation(cocos2d::Ref  * r);
-	void nextLocation(cocos2d::Ref  * r);
+	void previousLocation(Ref  * r);
+	void nextLocation(Ref  * r);
 private:
-	cocos2d::Sprite * bg;
-	cocos2d::Sprite * menuBg;
-	cocos2d::MenuItemImage * back;
-	cocos2d::MenuItemImage * restart;
+	Sprite * bg;
+	Sprite * menuBg;
+	MenuItemImage * back;
+	MenuItemImage * restart;
 
 	int curLevelNum;
 
-	vector<cocos2d::Point> pos_vec; //存储20个城市的地理位置
+	vector<Point> pos_vec; //存储20个城市的地理位置
 
 	GirlTwo * gt;
 
-	cocos2d::Sprite * dialog;
+	Sprite * dialog;
 
-	cocos2d::MenuItemImage * previous;
-	cocos2d::MenuItemImage * next;
+	MenuItemImage * previous;
+	MenuItemImage * next;
 
 	int loc;
-	vector<cocos2d::Sprite*> loc_vec;
+	vector<Sprite*> loc_vec;
 
-	cocos2d::Label * locLabel;
-
-
+	Label * locLabel;
 };
 
 #endif
