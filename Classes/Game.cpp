@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "GirlTwo.h"
 #include "DataManager.h"
+#include "GuideController.h"
 
 Game::Game()
 {
@@ -25,28 +26,21 @@ bool Game::init()
 
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 
+	// 窗口大小
 	visibleSize = Director::getInstance()->getVisibleSize();
 	origin = Director::getInstance()->getVisibleOrigin();
 
-	
-	auto bg_ = Sprite::create("city8.png");
-	bg_->setPosition(Vec2(visibleSize.width/2, visibleSize.height/2));
-	this->addChild(bg_, -1);
-
-
-	// 22娘
+	// ---------------------------------22娘
 	auto tg = GirlTwo::create();
 	tg->setPosition(390, 650);
 	tg->setScale(0.8);
 	this->addChild(tg, 20);
-
 	// 22娘左边的对话框
 	auto lqy_dialog = Sprite::create("gameEnd.png");
 	lqy_dialog->setScale(0.3);
 	lqy_dialog->setPosition(tg->getPosition() - Point(130, 0));
 	lqy_dialog->setVisible(false);
 	this->addChild(lqy_dialog, 21);
-
 	//处理22娘说的话
 	//const char *str_girl = ((String*)dic->objectForKey(""))->_string.c_str();
 	auto girlTalk = Label::createWithTTF("22娘说的话", "fonts/b.ttf", 18);
@@ -54,11 +48,12 @@ bool Game::init()
 	girlTalk->setPosition(tg->getPosition() - Point(125, 100));
 	girlTalk->setVisible(false);
 	addChild(girlTalk, 22);
+	// ---------------------------------END 22娘
 
 
 
-
-	//--------道具不足的提示图片,开始不显示
+	//------------------------道具不足的提示图片,开始不显示
+	// bg
 	auto notEnough = Sprite::create("warning.png");
 	notEnough->setScale(0.8);
 	notEnough->setVisible(false);
@@ -76,8 +71,6 @@ bool Game::init()
 	notEnoughDes->setPosition(visibleSize.width / 2 + 32, visibleSize.height / 2 + 40);
 	notEnoughDes->setVisible(false);
 	addChild(notEnoughDes, 11);
-
-
 	// button
 	auto notEnoughMII = MenuItemImage::create("menu.png", "menu.png", 
 		CC_CALLBACK_1(Game::warningCallback, this));
@@ -92,19 +85,27 @@ bool Game::init()
 	ok->setPosition(visibleSize.width / 2, visibleSize.height / 2 - 50);
 	ok->setVisible(false);
 	addChild(ok, 13);
+	//------------------------END 道具不足的提示图片,开始不显示
+
+	tower1 = nullptr;
+	tower2 = nullptr;
+
+	isGameReady = false;
+	isTargetReached = false;
+	curLevel = getDataManager().getGameLevel();
 
 
 
 
-
-	//2个功能性道具
-	auto changeIcon = MenuItemImage::create("changeIcon.png", "changeIcon.png", 
+	//-------------------------------------------2个功能性道具
+	// 道具1的icon
+	changeIcon = MenuItemImage::create("changeIcon.png", "changeIcon.png", 
 		CC_CALLBACK_1(Game::changeIconType, this));
 	changeIcon->setScale(0.5);
 	auto changeIconMenu = Menu::create(changeIcon, NULL);
 	changeIconMenu->setPosition(visibleSize.width / 2 + 100, visibleSize.height - 75);
 	addChild(changeIconMenu, 3);
-	changeIcon->setOpacity(0);
+	changeIcon->setOpacity(0);// 默认不显示
 	ActionInterval * delay_ci = DelayTime::create(4.6);   //每个sprite出现间隔0.4秒
 	auto fi_ci = FadeIn::create(0.5);
 	auto seq_ci = Sequence::create(delay_ci, fi_ci, NULL);
@@ -113,7 +114,7 @@ bool Game::init()
 	char cChangeIconNum[10];
 	sprintf(cChangeIconNum, "%d", UserDefault::getInstance()->getIntegerForKey("ChangeNum"));
 	std::string strChangeIconNum = cChangeIconNum;
-	auto changeIconLabel = Label::createWithTTF(cChangeIconNum, "fonts/pirulenrg.ttf", 18);
+	changeIconLabel = Label::createWithTTF(cChangeIconNum, "fonts/pirulenrg.ttf", 18);
 	changeIconLabel->setPosition(visibleSize.width / 2 + 125, visibleSize.height - 92);
 	addChild(changeIconLabel, 3);
 	changeIconLabel->setOpacity(0);
@@ -121,9 +122,8 @@ bool Game::init()
 	auto fi_cil = FadeIn::create(0.5);
 	auto seq_cil = Sequence::create(delay_cil, fi_cil, NULL);
 	changeIconLabel->runAction(seq_cil);
-
-	//道具2
-	auto bombIcon = MenuItemImage::create("bomb.png", "bomb.png", 
+	//道具2的icon
+	bombIcon = MenuItemImage::create("bomb.png", "bomb.png", 
 		CC_CALLBACK_1(Game::bombIconType, this));
 	bombIcon->setScale(0.5);
 	auto bombIconMenu = Menu::create(bombIcon, NULL);
@@ -138,7 +138,7 @@ bool Game::init()
 	char cBombIconNum[10];
 	sprintf(cBombIconNum, "%d", UserDefault::getInstance()->getIntegerForKey("BombNum"));
 	std::string strBombIconNum = cBombIconNum;
-	auto bombIconLabel = Label::createWithTTF(cBombIconNum, "fonts/pirulenrg.ttf", 18);
+	bombIconLabel = Label::createWithTTF(cBombIconNum, "fonts/pirulenrg.ttf", 18);
 	bombIconLabel->setPosition(visibleSize.width / 2 + 185, visibleSize.height - 92);
 	addChild(bombIconLabel, 3);
 	bombIconLabel->setOpacity(0);
@@ -146,7 +146,6 @@ bool Game::init()
 	auto fi_bil = FadeIn::create(0.5);
 	auto seq_bil = Sequence::create(delay_bil, fi_bil, NULL);
 	bombIconLabel->runAction(seq_bil);
-
 	//让道具数字变红
 	if (UserDefault::getInstance()->getIntegerForKey("BombNum") == 0)
 	{
@@ -156,14 +155,14 @@ bool Game::init()
 	{
 		changeIconLabel->setColor(Color3B(208, 52, 13));
 	}
+	//-------------------------------------------END 2个功能性道具
 
 
 
 
-
-
+	//--------------------------------------------欢迎界面
 	//半透明黑色背景
-	auto transBg = Sprite::create("transparent.png");
+	transBg = Sprite::create("transparent.png");
 	transBg->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	transBg->setScaleX(1.5);
 	transBg->setScaleY(0.001);
@@ -173,7 +172,7 @@ bool Game::init()
 	auto sq_bg = Sequence::create(delaytime_bg, st_bg, NULL);
 	transBg->runAction(sq_bg);
 	//女孩飞入介绍城市
-	auto girl = Sprite::create("girl1.png");
+	girl = Sprite::create("girl1.png");
 	girl->setScale(0.2);
 	girl->setPosition(-100, visibleSize.height / 2);
 	addChild(girl, 15);
@@ -183,7 +182,7 @@ bool Game::init()
 	girl->runAction(sq_girl);
 	//2条label相反方向飞入
 	const char *str_welcome = ((String*)dic->objectForKey("welcome"))->_string.c_str();
-	auto welcome = Label::createWithTTF(str_welcome, "fonts/b.ttf", 40);
+    welcome = Label::createWithTTF(str_welcome, "fonts/b.ttf", 40);
 	welcome->setRotationSkewX(15);//这个函数是倾斜字体用的
 	welcome->setPosition(-100, visibleSize.width / 2 + 180);
 	addChild(welcome, 8);
@@ -195,17 +194,12 @@ bool Game::init()
 	ActionInterval * delaytime_welcome2 = CCDelayTime::create(2.0);
 	auto sq_welcome = Sequence::create(delaytime_welcome, mt_welcome, delaytime_welcome2, deleteWelcome, NULL);
 	welcome->runAction(sq_welcome);
-
-
-	bool isGameReady = false;
-	auto curLevel = getDataManager().getGameLevel();
-
-
+	// 处理具体城市的名字
 	//城市string，保存各个城市的名字
 	std::string cityName[20] = { "beijing","tokyo","singnapore","hawaii","canada","newyork","sanfan","rio","london","germany","swiss","dutch","greece","moscow","paris","rome","africa","dubai","maldive","sydeny" };
 	//介绍地名的label
 	const char *str_city = ((String*)dic->objectForKey(cityName[curLevel - 1]))->_string.c_str();
-	auto spots = Label::createWithTTF(str_city, "fonts/b.ttf", 30);
+	spots = Label::createWithTTF(str_city, "fonts/b.ttf", 30);
 	spots->setColor(Color3B(242, 221, 28));
 	spots->setRotationSkewX(15);
 	spots->setPosition(650, visibleSize.width / 2 + 125);
@@ -219,10 +213,15 @@ bool Game::init()
 	ActionInterval * delaytime_spots2 = CCDelayTime::create(2.0);
 	auto sq_spots = Sequence::create(delaytime_spots, mt_spots, delaytime_spots2, deleteSpots, NULL);
 	spots->runAction(sq_spots);
+	//--------------------------------------------END 欢迎界面
 
 
-	//ready go 动画
-	auto readyLabel = Label::createWithTTF("READY", "fonts/HANGTHEDJ.ttf", 100);
+
+
+
+	//--------------------------------------------ready go 动画
+	//ready
+	readyLabel = Label::createWithTTF("READY", "fonts/HANGTHEDJ.ttf", 100);
 	readyLabel->setPosition(visibleSize.width + 200, visibleSize.height / 2);
 	addChild(readyLabel, 8);
 	ActionInterval * delaytime_ready = CCDelayTime::create(4.7);
@@ -234,9 +233,7 @@ bool Game::init()
 	});
 	auto sq_ready = Sequence::create(delaytime_ready, musicReady, mt_ready, mt_ready_1, mt_ready_2, NULL);
 	readyLabel->runAction(sq_ready);
-
-
-
+	//go
 	auto goLabel = Label::createWithTTF("GO", "fonts/HANGTHEDJ.ttf", 100);
 	goLabel->setScale(2.5);
 	goLabel->setPosition(visibleSize.width / 2, visibleSize.height / 2);
@@ -256,24 +253,25 @@ bool Game::init()
 	ActionInterval * delaytime_wait = CCDelayTime::create(0.4);
 	auto sq_go = Sequence::create(delaytime_go, sp_go, delaytime_wait, deleteBg, NULL);
 	goLabel->runAction(sq_go);
+	//--------------------------------------------END ready go 动画
 
 
+	//------------------------------------添加怎么玩的层,只有第一关才有
+	if (getDataManager().getGameLevel() == 1)
+	{
+		ActionInterval * delaytime_htp = CCDelayTime::create(7.5);
+		auto addHowToPlay = CallFunc::create([=]() {
+			auto htp = GuideController::create();
+			htp->setPosition(0, 0);
+			addChild(htp, 20);
+		});
+		auto seq_htp = Sequence::create(delaytime_htp, addHowToPlay, NULL);
+		this->runAction(seq_htp);
+	}
+	//------------------------------------END 添加怎么玩的层,只有第一关才有
 
-	////添加怎么玩的层,只有第一关才有
-	//if (getDataManager().getGameLevel() == 1)
-	//{
-	//	ActionInterval * delaytime_htp = CCDelayTime::create(7.5);
-	//	auto addHowToPlay = CallFunc::create([=]() {
-	//		HowToPlayLayer * htp = HowToPlayLayer::create();
-	//		htp->setPosition(0, 0);
-	//		addChild(htp, 20);
-	//	});
-	//	auto seq_htp = Sequence::create(delaytime_htp, addHowToPlay, NULL);
-	//	this->runAction(seq_htp);
-	//}
 
-
-
+	//-------------------------------------每一关卡的目标和等级
 	//目标：字体
 	const char *str_action = ((String*)dic->objectForKey("target_score"))->_string.c_str();
 	auto label2 = Label::createWithTTF(str_action, "fonts/b.ttf", 18);
@@ -284,8 +282,8 @@ bool Game::init()
 	auto seq_la = Sequence::create(delay_la, fi_la, NULL);
 	label2->runAction(seq_la);
 	addChild(label2, 3);
-	//目标：分数
-	auto target_score = getDataManager().getLevelTargetScore();
+	//更新每一关的目标分数
+	target_score = getDataManager().getLevelTargetScore();
 	char target_temp[20];
 	sprintf(target_temp, "%d", target_score);
 	std::string target_str = target_temp;
@@ -298,8 +296,8 @@ bool Game::init()
 	targetScore_label->runAction(seq_ts);
 	addChild(targetScore_label, 5);
 
-	// 等级LV：
-	auto level_label = Label::createWithTTF("Lv:", "fonts/ethnocentricrg.ttf", 30);
+	// 等级LV：-label
+	level_label = Label::createWithTTF("Lv:", "fonts/ethnocentricrg.ttf", 30);
 	level_label->setPosition(visibleSize.width / 2 - 180, visibleSize.height - 160);
 	addChild(level_label, 2);
 	level_label->setOpacity(0);
@@ -307,12 +305,12 @@ bool Game::init()
 	auto fi_ll = FadeIn::create(0.5);
 	auto seq_ll = Sequence::create(delay_ll, fi_ll, NULL);
 	level_label->runAction(seq_ll);
-	// 等级数目
+	// 等级数目label-number
 	log("cur level: %d", curLevel);
 	char target_level[20];
 	sprintf(target_level, "%d", curLevel);
 	std::string target_str1 = target_level;
-	auto levelNum_label = Label::createWithTTF(target_str1, "fonts/ethnocentricrg.ttf", 40);
+	levelNum_label = Label::createWithTTF(target_str1, "fonts/ethnocentricrg.ttf", 40);
 	levelNum_label->setPosition(visibleSize.width / 2 - 120, visibleSize.height - 157);
 	addChild(levelNum_label, 2);
 	levelNum_label->setOpacity(0);
@@ -320,7 +318,10 @@ bool Game::init()
 	auto fi_lnl = FadeIn::create(0.5);
 	auto seq_lnl = Sequence::create(delay_lnl, fi_lnl, NULL);
 	levelNum_label->runAction(seq_lnl);
+	//-------------------------------------END 每一关卡的目标和等级
 
+
+	// ------------------------------------------背景图片
 	char c[10];
 	sprintf(c, "%d", curLevel);
 	std::string str = c;
@@ -328,15 +329,20 @@ bool Game::init()
 	Sprite * bg = Sprite::create(city + ".png");
 	bg->setAnchorPoint(Vec2(0, 0));
 	addChild(bg, 1);
+	// ------------------------------------------END 背景图片
+
+
+
+	timerRunning = false;
+	gameIsOver = false;
 
 
 
 
-	bool timerRunning = false;
-	bool gameIsOver = false;
 
 
-	//游戏对话框图片:显示每个icon的知识----------背景--------------------
+	//-----------------------------底部游戏对话框图片:显示每个icon的知识
+	// 背景
 	Sprite * dialog = Sprite::create("dialog.png");
 	dialog->setPosition(visibleSize.width / 2 + 10, -100);
 	dialog->setScaleY(1.4);
@@ -347,34 +353,32 @@ bool Game::init()
 	auto seq_dialog = Sequence::create(delay_dialog, dialog_slow, NULL);
 	dialog->runAction(seq_dialog);
 	addChild(dialog, 2);
-
 	//知识label
-	auto knowledge_label = Label::createWithTTF("", "fonts/b.ttf", 20);
+	knowledge_label = Label::createWithTTF("", "fonts/b.ttf", 20);
 	knowledge_label->setPosition(visibleSize.width / 2 - 85, 40);
 	knowledge_label->setAnchorPoint(Point(0, 0));
 	knowledge_label->setDimensions(300, 60);
 	addChild(knowledge_label, 6);
-
 	//level1_1.png
-	auto small_pic = Sprite::create("level1_1.png");
+	small_pic = Sprite::create("level1_1.png");
 	small_pic->setPosition(visibleSize.width / 2 - 160, 80);
 	small_pic->setScale(0.5);
-	//small_pic->setVisible(false);
+	small_pic->setVisible(false);
 	addChild(small_pic, 5);
-	// label
-	auto name_label = Label::createWithTTF("evernote", "fonts/b.ttf", 20);
+	// level1_1.png---label
+	name_label = Label::createWithTTF("evernote", "fonts/b.ttf", 20);
 	name_label->setPosition(visibleSize.width / 2 - 160, 40);
-	//name_label->setVisible(false);
+	name_label->setVisible(false);
 	addChild(name_label, 5);
+	//-----------------------------END 底部游戏对话框图片:显示每个icon的知识
 
 
-
-	//背景图片,3个最上面的
-	//-------------------------目标分数的背景
+	//-------------------------------------------------背景图片,3个最上面的
+	//目标分数的背景
 	Sprite * m1 = Sprite::create("menu.png");
 	m1->setScaleX(0.8);
 	m1->setScaleY(0.8);
-	m1->setPosition(visibleSize.width / 2, visibleSize.height + 80);                                       //dellta Y = 130
+	m1->setPosition(visibleSize.width / 2, visibleSize.height + 80);  //dellta Y = 130
 	auto mt_m1 = MoveTo::create(1, Vec2(visibleSize.width / 2, visibleSize.height - 50));
 	ActionInterval * delay_m1 = DelayTime::create(2.7);
 	EaseOut * m1_slow = EaseOut::create(mt_m1, 7.0);
@@ -382,7 +386,7 @@ bool Game::init()
 	auto seq_m1 = Sequence::create(delay_m1, m1_slow, NULL);
 	m1->runAction(seq_m1);
 	addChild(m1, 2);
-	//-------------------------的背景
+	//返回主菜单和重新开始按钮的菜单的背景
 	Sprite * m2 = Sprite::create("menu.png");
 	m2->setScaleX(0.8);
 	m2->setScaleY(0.8);
@@ -394,7 +398,7 @@ bool Game::init()
 	auto seq_m2 = Sequence::create(delay_m2, m2_slow, NULL);
 	m2->runAction(seq_m2);
 	addChild(m2, 2);
-	//-------------------------功能性icon的背景 
+	//功能性icon的背景 
 	Sprite * m3 = Sprite::create("menu.png");
 	m3->setScaleX(0.8);
 	m3->setScaleY(0.8);
@@ -407,10 +411,8 @@ bool Game::init()
 	m3->runAction(seq_m3);
 	addChild(m3, 2);
 
-
-
 	//返回主菜单和重新开始按钮
-	auto btm = MenuItemImage::create("backToMenu.png", "backToMenu.png", 
+	btm = MenuItemImage::create("backToMenu.png", "backToMenu.png", 
 		CC_CALLBACK_1(Game::returnToMenu, this));
 	btm->setAnchorPoint(Point(0, 0));
 	btm->setScale(0.45);
@@ -423,7 +425,7 @@ bool Game::init()
 	btm_menu->runAction(seq_btm);
 	addChild(btm_menu, 3);
 	//重新开始按钮
-	auto res = MenuItemImage::create("restart.png", "restart.png", 
+	res = MenuItemImage::create("restart.png", "restart.png", 
 		CC_CALLBACK_1(Game::restartGame, this));
 	res->setAnchorPoint(Point(0, 0));
 	res->setScale(0.45);
@@ -435,22 +437,20 @@ bool Game::init()
 	auto seq_res = Sequence::create(delay_res, fi_res, NULL);
 	res_menu->runAction(seq_res);
 	addChild(res_menu, 3);
+	//-------------------------------------------------END 背景图片,3个最上面的
 
 
 
-
-
+	//-------------------------当前分数的初始化及显示
 	//初始化分数
 	int tempICS = getDataManager().getCurrentScore();
 	getDataManager().setInitCurrentScore(tempICS);
-
-
 	//当前分数的显示
-	auto currentScore = getDataManager().getCurrentScore();
+    currentScore = getDataManager().getCurrentScore();
 	log("current score init: %d", currentScore);
 	char s[20];
 	sprintf(s, "%d", currentScore);
-	auto label_score = Label::createWithTTF(s, "fonts/HANGTHEDJ.ttf", 50);
+	label_score = Label::createWithTTF(s, "fonts/HANGTHEDJ.ttf", 50);
 	label_score->setPosition(visibleSize.width / 2 - 15, visibleSize.height - 150);
 	addChild(label_score, 3);
 	auto st = ScaleBy::create(1.0, 1.1);
@@ -462,9 +462,12 @@ bool Game::init()
 	auto fi_ls = FadeIn::create(0.5);
 	auto seq_ls = Sequence::create(delay_ls, fi_ls, NULL);
 	label_score->runAction(seq_ls);
+	//-------------------------END 当前分数的初始化及显示
+
 
 
 	//---------------------------------------游戏结束对话框
+	// 背景
 	auto gameEnd = Sprite::create("gameEnd.png");
 	gameEnd->setPosition(visibleSize.width / 2, visibleSize.height - 450);
 	gameEnd->setScale(0.85);
@@ -476,21 +479,23 @@ bool Game::init()
 
 
 
-	//初始化数据统计
-	auto statistic_LeftIcon = 0;
-	auto statistic_LeftBonus = 0;
-	auto statistic_SingleMost = 0;
-	auto statistic_MostIcon = 0;
-	auto statistic_Time = 0;
 
-	auto four_kill = 0;
-	auto five_kill = 0;
-	auto six_kill = 0;
-	auto seven_kill = 0;
-	auto legendary_kill = 0;
+
+	//初始化数据统计
+	statistic_LeftIcon = 0;
+	statistic_LeftBonus = 0;
+	statistic_SingleMost = 0;
+	statistic_MostIcon = 0;
+	statistic_Time = 0;
+
+	four_kill = 0;
+	five_kill = 0;
+	six_kill = 0;
+	seven_kill = 0;
+	legendary_kill = 0;
 
 	//////////////////////////////////////////数据统计
-	// title
+	// 数据统计的标题title
 	const char *str_1 = ((String*)dic->objectForKey("statistic"))->_string.c_str();
 	auto statisticTitle = Label::createWithTTF(str_1, "fonts/b.ttf", 30);
 	statisticTitle->setPosition(visibleSize.width / 2, visibleSize.height - 320);
@@ -585,20 +590,20 @@ bool Game::init()
 	title5->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 540);
 	title5->setVisible(false);
 	addChild(title5, 6);
-	//// label-number
-	//char sLabel6[20];
-	//sprintf(sLabel6, "%f", statistic_Time);
-	//auto timer_label = Label::createWithTTF(sLabel6, "fonts/watch.ttf", 25);
-	//timer_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 540);
-	////timer_label->setVisible(false);
-	//addChild(timer_label, 6);
+	// label-number
+	char sLabel6[20];
+	sprintf(sLabel6, "%f", statistic_Time);
+	auto timer_label = Label::createWithTTF(sLabel6, "fonts/watch.ttf", 25);
+	timer_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 540);
+	timer_label->setVisible(false);
+	addChild(timer_label, 6);
 	//////////////////////////////////////////END 数据统计
-
 
 
 
 	//////////////////////////////////显示4~8杀的label
 	//4杀
+	//icon
 	auto pointer6 = Sprite::create("pointer.png");
 	pointer6->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 380);
 	pointer6->setRotation(-90);
@@ -618,6 +623,7 @@ bool Game::init()
 	fourKill_label->setVisible(false);
 	addChild(fourKill_label, 6);
 	//5杀
+	//icon
 	auto pointer7 = Sprite::create("pointer.png");
 	pointer7->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 420);
 	pointer7->setRotation(-90);
@@ -637,6 +643,7 @@ bool Game::init()
 	fiveKill_label->setVisible(false);
 	addChild(fiveKill_label, 6);
 	//6杀
+	//icon
 	auto pointer8 = Sprite::create("pointer.png");
 	pointer8->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 460);
 	pointer8->setRotation(-90);
@@ -701,35 +708,49 @@ bool Game::init()
 
 
 	/////////////////////////剩余奖励icon
-	auto leftBonusBox = Sprite::create("leftBonus.png");                                    //大小写问题，vs忽略大小写，adnroid不忽略，卧槽
+	// icon
+	auto leftBonusBox = Sprite::create("leftBonus.png");  //大小写问题，vs忽略大小写，adnroid不忽略，卧槽
 	leftBonusBox->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	leftBonusBox->setScale(1);
-	//leftBonusBox->setOpacity(0);
+	leftBonusBox->setOpacity(0);
 	addChild(leftBonusBox, 6);
-
 	// 下一关 menuitem
 	auto nextLevel = MenuItemImage::create("menu.png", "menu.png", 
 		CC_CALLBACK_1(Game::goToNextLevel, this));
 	nextLevel->setScale(0.5);
 	auto menuNextLevel = Menu::create(nextLevel, NULL);
 	menuNextLevel->setPosition(visibleSize.width / 2, visibleSize.height - 600);
-	//menuNextLevel->setVisible(false);
+	menuNextLevel->setVisible(false);
 	addChild(menuNextLevel, 6);
 	// menuitem-label
 	const char *str_nextLevel = ((String*)dic->objectForKey("nextLevel"))->_string.c_str();
 	auto nextLevelLabel = Label::createWithTTF(str_nextLevel, "fonts/b.ttf", 20);
 	nextLevelLabel->setPosition(visibleSize.width / 2 - 5, visibleSize.height - 600);
 	addChild(nextLevelLabel, 7);
-	//nextLevelLabel->setVisible(false);
+	nextLevelLabel->setVisible(false);
 	
 
 
-	// TODO...
+
+	// 初始化数组
+	pointArray = new PointArray();
+	pointArray->initWithCapacity(100);
+	//生产所有点阵
+	generatePoint();
+
+	//添加装备
+	addEquipment();
 
 
+	// TODO....
 
 
-
+	//初始化记录5个icon的数组
+	//icon_map.insert(std::make_pair(icon[0], 0));
+	//icon_map.insert(std::make_pair(icon[1], 0));
+	//icon_map.insert(std::make_pair(icon[2], 0));
+	//icon_map.insert(std::make_pair(icon[3], 0));
+	//icon_map.insert(std::make_pair(icon[4], 0));
 
 	return true;
 }
@@ -756,4 +777,12 @@ void Game::restartGame(cocos2d::Ref* r)
 {}
 
 void Game::goToNextLevel(Ref * r)
+{}
+
+//生产所有点阵
+void Game::generatePoint()
+{}
+
+//添加装备(10*10)
+void Game::addEquipment()
 {}
