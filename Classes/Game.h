@@ -4,6 +4,8 @@
 #include "cocos2d.h"
 #include "BaseController.h"
 
+#include "ItemNotEnoughPrefab.h"
+
 USING_NS_CC;
  
 class Game : public BaseController
@@ -14,10 +16,6 @@ public:
 	static Scene* createScene();
 	virtual bool init();
 	CREATE_FUNC(Game);
-
-
-	//warning回调函数
-	void warningCallback(cocos2d::Ref *r);
 
 	//道具函数： 改变种类
 	void changeIconType(Ref * r);
@@ -39,18 +37,43 @@ public:
 
 	std::vector<int> icon;
 
+
+	//检测游戏是否结束：即没有2个相连的装备
+	bool isGameOver();
+
+
+	//开始计时函数
+	void startTimer();
+
 private:
 	Size visibleSize;
 	Vec2 origin;
 
+
+	bool firstHit;
+	bool isGameOverHit;
+
+	//剩余奖励数组
+	std::vector<int> leftBonus;
+
+	//剩余奖励数组
+	std::vector<int> bonus_vec;
+
+	int board[10][10];//模拟摆放装备的数组
+
+
 	//2个激光炮塔
 	Sprite * tower1;
 	Sprite * tower2;
+	//2个飞弹
+	Sprite * missile1;
+	Sprite * missile2;
 
 	bool isGameReady;
 	bool isTargetReached;
 
-
+	// 道具不足时的提示框
+	ItemNotEnoughPrefab* m_pItemNotEnoughSprite;
 
 	//2个功能性道具
 	MenuItemImage * changeIcon;
@@ -111,6 +134,15 @@ private:
 						   
     //记录5个icon分别消去的个数的map
 	std::map<int, int> icon_map;
+
+	// 下一关
+	Sprite* leftBonusBox;
+	MenuItemImage* nextLevel;
+
+
+	Vector<Sprite*> equip;//存放所有装备的数组
+	Sprite* equipment[10][10];//存放装备的数组
+
 };
 
 

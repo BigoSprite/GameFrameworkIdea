@@ -1,18 +1,18 @@
-#ifndef _BOMB_ICON_VIEW_H_
-#define _BOMB_ICON_VIEW_H_
+#ifndef _BOMB_ICON_PREFAB_H_
+#define _BOMB_ICON_PREFAB_H_
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 
 USING_NS_CC;
 
-class BombIconView : public ui::Layout
+class BombIconPrefab : public ui::Layout
 {
 public:
-	BombIconView();
-	~BombIconView();
+	BombIconPrefab();
+	~BombIconPrefab();
 	virtual bool init();
-	CREATE_FUNC(BombIconView);
+	CREATE_FUNC(BombIconPrefab);
 
 	void closeMenuCallback(Ref * ref);
 
@@ -27,4 +27,4 @@ private:
 	Sprite* m_pMissle;
 };
 
-#endif //_BOMB_ICON_VIEW_H_
+#endif //_BOMB_ICON_PREFAB_H_

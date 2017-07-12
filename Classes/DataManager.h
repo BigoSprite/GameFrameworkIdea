@@ -25,7 +25,7 @@ public:
 
 
 	std::vector<int> getIconVec();
-	void addIconVec(int value);
+	void setIconVec(int value);
 	void clearIconVec();
 
 private:

@@ -1,24 +1,24 @@
-#include "GamePauseLayer.h"
+#include "GamePauseController.h"
 
-GamePauseLayer::GamePauseLayer()
+GamePauseController::GamePauseController()
 {
 }
 
-GamePauseLayer::~GamePauseLayer()
+GamePauseController::~GamePauseController()
 {
 }
 
-Scene* GamePauseLayer::createScene()
+Scene* GamePauseController::createScene()
 {
 	auto scene = Scene::create();
-	auto layer = GamePauseLayer::create();
+	auto layer = GamePauseController::create();
 	scene->addChild(layer);
 	return scene;
 }
 
-bool GamePauseLayer::init()
+bool GamePauseController::init()
 {
-	if (!Layer::init())
+	if (!BaseController::init())
 		return false;
 
 	Size size = Director::getInstance()->getVisibleSize();
@@ -54,7 +54,7 @@ bool GamePauseLayer::init()
 
 	//继续游戏菜单
 	resume = MenuItemImage::create("menu.png", "menu.png", 
-		CC_CALLBACK_1(GamePauseLayer::resumeGame, this));
+		CC_CALLBACK_1(GamePauseController::resumeGame, this));
 	resume->setScale(0.7);
 	auto resumeMenu = Menu::create(resume, NULL);
 	resumeMenu->setPosition(size.width / 2, size.height - 450);
@@ -67,7 +67,7 @@ bool GamePauseLayer::init()
 
 	//返回主菜单
 	mainMenu = MenuItemImage::create("menu.png", "menu.png", 
-		CC_CALLBACK_1(GamePauseLayer::goBackToMenu, this));
+		CC_CALLBACK_1(GamePauseController::goBackToMenu, this));
 	mainMenu->setScale(0.7);
 	auto mainMenuMenu = Menu::create(mainMenu, NULL);
 	mainMenuMenu->setPosition(size.width / 2, size.height - 525);
@@ -82,7 +82,7 @@ bool GamePauseLayer::init()
 	bgmSprite = Sprite::create("bgm_on.png");
 	bgmSprite->setScale(1.3);
 	bgm_on = MenuItemSprite::create(bgmSprite, bgmSprite, 
-		CC_CALLBACK_1(GamePauseLayer::bgmOnOff, this));
+		CC_CALLBACK_1(GamePauseController::bgmOnOff, this));
 	auto menuBGMON = Menu::create(bgm_on, NULL);
 	menuBGMON->setPosition(size.width / 2 - 80, size.height / 2 + 40);
 	addChild(menuBGMON, 13);
@@ -96,7 +96,7 @@ bool GamePauseLayer::init()
 	effectSprite = Sprite::create("sound_on.png");
 	effectSprite->setScale(1.3);
 	effect_on = MenuItemSprite::create(effectSprite, effectSprite, 
-		CC_CALLBACK_1(GamePauseLayer::effectOnOff, this));
+		CC_CALLBACK_1(GamePauseController::effectOnOff, this));
 	auto menuEFFECTON = Menu::create(effect_on, NULL);
 	menuEFFECTON->setPosition(size.width / 2 + 30, size.height / 2 + 40);
 	addChild(menuEFFECTON, 13);
@@ -124,30 +124,30 @@ bool GamePauseLayer::init()
 	return true;
 }
 
-void GamePauseLayer::onEnter()
+void GamePauseController::onEnter()
 {
-	Layer::onEnter();
+	BaseController::onEnter();
 	this->setSwallowsTouches(true);
 }
 
-void GamePauseLayer::onExit()
+void GamePauseController::onExit()
 {
-	Layer::onExit();
+	BaseController::onExit();
 }
 
-void GamePauseLayer::resumeGame(Ref* ref)
+void GamePauseController::resumeGame(Ref* ref)
 {
 	//SimpleAudioEngine::getInstance()->playEffect("menu.OGG");
 	//去除该层,就相当于恢复游戏了
 	this->removeFromParentAndCleanup(true);
 }
 
-void GamePauseLayer::goBackToMenu(Ref* ref)
+void GamePauseController::goBackToMenu(Ref* ref)
 {}
 
-void GamePauseLayer::bgmOnOff(Ref* ref)
+void GamePauseController::bgmOnOff(Ref* ref)
 {}
 
-void GamePauseLayer::effectOnOff(Ref* ref)
+void GamePauseController::effectOnOff(Ref* ref)
 {}
 

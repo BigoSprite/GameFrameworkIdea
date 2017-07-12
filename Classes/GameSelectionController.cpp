@@ -3,7 +3,6 @@
 #include "HelloWorldScene.h"
 #include "GuideController.h"
 #include "WorldMapScene.h"
-#include "finalScene.h"
 #include "FailLayer.h"
 #include "ContinueLastGameController.h"
 #include "Game.h"

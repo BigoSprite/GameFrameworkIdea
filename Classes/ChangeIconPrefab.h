@@ -1,21 +1,23 @@
-#ifndef _CHANGE_ICON_VIEW_H_
-#define _CHANGE_ICON_VIEW_H_
+#ifndef _CHANGE_ICON_PREFAB_H_
+#define _CHANGE_ICON_PREFAB_H_
 
 #include "cocos2d.h"
 #include "ui/CocosGUI.h"
 
 USING_NS_CC;
 
-class ChangeIconView : public ui::Layout
+class ChangeIconPrefab : public ui::Layout
 {
 public:
-	ChangeIconView();
-	~ChangeIconView();
+	ChangeIconPrefab();
+	~ChangeIconPrefab();
 	virtual bool init();
-	CREATE_FUNC(ChangeIconView);
+	CREATE_FUNC(ChangeIconPrefab);
 
 	void closeMenuCallback(Ref* pRef);
 
+
+	static Scene* createScene();
 private:
 	Size visibleSize;
 
@@ -38,4 +40,4 @@ private:
 	Sprite* m_pLast;
 };
 
-#endif // _CHANGE_ICON_VIEW_H_
+#endif // _CHANGE_ICON_PREFAB_H_

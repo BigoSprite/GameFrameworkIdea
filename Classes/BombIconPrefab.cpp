@@ -1,14 +1,14 @@
-#include "BombIconView.h"
+#include "BombIconPrefab.h"
 
-BombIconView::BombIconView()
+BombIconPrefab::BombIconPrefab()
 {
 }
 
-BombIconView::~BombIconView()
+BombIconPrefab::~BombIconPrefab()
 {
 }
 
-bool BombIconView::init()
+bool BombIconPrefab::init()
 {
 	if (!ui::Layout::init())
 		return false;
@@ -36,7 +36,7 @@ bool BombIconView::init()
 
 	//¹Ø±Õ°´Å¥
 	m_pCloseItem = MenuItemImage::create("menu.png", "menu.png", 
-		CC_CALLBACK_1(BombIconView::closeMenuCallback, this));
+		CC_CALLBACK_1(BombIconPrefab::closeMenuCallback, this));
 	m_pCloseItem->setScale(0.4);
 	m_pClostMenu = Menu::create(m_pCloseItem, NULL);
 	m_pClostMenu->setPosition(visibleSize.width / 2, visibleSize.height + 180);
@@ -74,7 +74,7 @@ bool BombIconView::init()
 	return true;
 }
 
-void BombIconView::closeMenuCallback(Ref * ref)
+void BombIconPrefab::closeMenuCallback(Ref * ref)
 {
 	auto mt_des = MoveTo::create(0.5, Vec2(visibleSize.width / 2 + 10, visibleSize.height + 220));
 	m_pDescription->runAction(mt_des);

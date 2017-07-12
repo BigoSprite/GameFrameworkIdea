@@ -1,13 +1,14 @@
-#ifndef _GAME_PAUSE_LAYER_H_
-#define _GAME_PAUSE_LAYER_H_
+#ifndef _GAME_PAUSE_CONTROLLER_H_
+#define _GAME_PAUSE_CONTROLLER_H_
 #include "cocos2d.h"
+#include "BaseController.h"
 USING_NS_CC;
 
-class GamePauseLayer : public Layer
+class GamePauseController : public BaseController
 {
 public:
-	GamePauseLayer();
-	~GamePauseLayer();
+	GamePauseController();
+	~GamePauseController();
 
 	virtual bool init();
 	static Scene* createScene();
@@ -20,7 +21,7 @@ public:
 	void bgmOnOff(Ref* ref);
 	void effectOnOff(Ref* ref);
 
-	CREATE_FUNC(GamePauseLayer)
+	CREATE_FUNC(GamePauseController)
 private:
 
 	Sprite* bg;
@@ -40,4 +41,4 @@ private:
 	Sprite* effectSprite;
 };
 
-#endif // _GAME_PAUSE_LAYER_H_
+#endif // _GAME_PAUSE_CONTROLLER_H_

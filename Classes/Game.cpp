@@ -2,6 +2,16 @@
 #include "GirlTwo.h"
 #include "DataManager.h"
 #include "GuideController.h"
+#include "ChangeIconPrefab.h"
+#include "BombIconPrefab.h"
+#include "GamePauseController.h"
+#include "WelcomeSceneController.h"
+#include "FinalSceneController.h"
+
+#include "SimpleAudioEngine.h"
+
+using namespace CocosDenshion;
+
 
 Game::Game()
 {
@@ -23,6 +33,31 @@ bool Game::init()
 {
 	if (!BaseController::init())
 		return false;
+
+	//这里更新每一次玩到的关卡数 
+	int tempLevel = getDataManager().getGameLevel();
+	UserDefault::getInstance()->setIntegerForKey("level_Global", tempLevel);
+
+	//将每一关初始化分数存进文件，下次进游戏要用
+	int tempCurrent = getDataManager().getInitCurrentScore();
+	UserDefault::getInstance()->setIntegerForKey("levelInitScore", tempCurrent);
+
+	//更新目标分数
+	int tempTargetScore = getDataManager().getLevelTargetScore();
+	UserDefault::getInstance()->setIntegerForKey("level_Global_targetScore", tempTargetScore);
+
+	UserDefault::getInstance()->flush();
+
+	firstHit = true;//第一次点击，播放firstblood音效
+	isGameOverHit = false;
+
+	//剩余奖励数组,5个以下才奖励
+	leftBonus.push_back(1000);
+	leftBonus.push_back(500);
+	leftBonus.push_back(250);
+	leftBonus.push_back(125);
+	leftBonus.push_back(100);
+
 
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 
@@ -52,39 +87,11 @@ bool Game::init()
 
 
 
-	//------------------------道具不足的提示图片,开始不显示
-	// bg
-	auto notEnough = Sprite::create("warning.png");
-	notEnough->setScale(0.8);
-	notEnough->setVisible(false);
-	notEnough->setPosition(visibleSize.width / 2, visibleSize.height / 2);
-	this->addChild(notEnough, 10);
-	// yellow icon
-	auto yellow = Sprite::create("yellowWarning.png");
-	yellow->setVisible(false);
-	yellow->setScale(0.6);
-	yellow->setPosition(visibleSize.width / 2 - 75, visibleSize.height / 2 + 40);
-	addChild(yellow, 11);
-	// yellow icon 右边的描述
-	const char *str_notDes = ((String*)dic->objectForKey("notenough"))->_string.c_str();
-	auto notEnoughDes = Label::createWithTTF(str_notDes, "fonts/b.ttf", 35);
-	notEnoughDes->setPosition(visibleSize.width / 2 + 32, visibleSize.height / 2 + 40);
-	notEnoughDes->setVisible(false);
-	addChild(notEnoughDes, 11);
-	// button
-	auto notEnoughMII = MenuItemImage::create("menu.png", "menu.png", 
-		CC_CALLBACK_1(Game::warningCallback, this));
-	notEnoughMII->setScale(0.4);
-	auto notEnoughMenu = Menu::create(notEnoughMII, NULL);
-	notEnoughMenu->setPosition(visibleSize.width / 2, visibleSize.height / 2 - 50);
-	notEnoughMenu->setVisible(false);
-	addChild(notEnoughMenu, 12);
-	// ok label
-	const char *str_ok = ((String*)dic->objectForKey("ok"))->_string.c_str();
-	auto ok = Label::createWithTTF(str_ok, "fonts/b.ttf", 20);
-	ok->setPosition(visibleSize.width / 2, visibleSize.height / 2 - 50);
-	ok->setVisible(false);
-	addChild(ok, 13);
+	// 道具不足提示框
+	m_pItemNotEnoughSprite = ItemNotEnoughPrefab::create();
+	m_pItemNotEnoughSprite->setPosition(visibleSize.width / 2, visibleSize.height / 2);
+	m_pItemNotEnoughSprite->setVisible(false);
+	this->addChild(m_pItemNotEnoughSprite, 10);
 	//------------------------END 道具不足的提示图片,开始不显示
 
 	tower1 = nullptr;
@@ -102,13 +109,13 @@ bool Game::init()
 	changeIcon = MenuItemImage::create("changeIcon.png", "changeIcon.png", 
 		CC_CALLBACK_1(Game::changeIconType, this));
 	changeIcon->setScale(0.5);
-	auto changeIconMenu = Menu::create(changeIcon, NULL);
+	auto changeIconMenu = Menu::create(changeIcon, nullptr);
 	changeIconMenu->setPosition(visibleSize.width / 2 + 100, visibleSize.height - 75);
 	addChild(changeIconMenu, 3);
 	changeIcon->setOpacity(0);// 默认不显示
 	ActionInterval * delay_ci = DelayTime::create(4.6);   //每个sprite出现间隔0.4秒
 	auto fi_ci = FadeIn::create(0.5);
-	auto seq_ci = Sequence::create(delay_ci, fi_ci, NULL);
+	auto seq_ci = Sequence::create(delay_ci, fi_ci, nullptr);
 	changeIcon->runAction(seq_ci);
 	//道具1的数量label
 	char cChangeIconNum[10];
@@ -120,19 +127,19 @@ bool Game::init()
 	changeIconLabel->setOpacity(0);
 	ActionInterval * delay_cil = DelayTime::create(4.6);   //每个sprite出现间隔0.4秒
 	auto fi_cil = FadeIn::create(0.5);
-	auto seq_cil = Sequence::create(delay_cil, fi_cil, NULL);
+	auto seq_cil = Sequence::create(delay_cil, fi_cil, nullptr);
 	changeIconLabel->runAction(seq_cil);
 	//道具2的icon
 	bombIcon = MenuItemImage::create("bomb.png", "bomb.png", 
 		CC_CALLBACK_1(Game::bombIconType, this));
 	bombIcon->setScale(0.5);
-	auto bombIconMenu = Menu::create(bombIcon, NULL);
+	auto bombIconMenu = Menu::create(bombIcon, nullptr);
 	bombIconMenu->setPosition(visibleSize.width / 2 + 160, visibleSize.height - 75);
 	addChild(bombIconMenu, 3);
 	bombIcon->setOpacity(0);
 	ActionInterval * delay_bi = DelayTime::create(5);   //每个sprite出现间隔0.4秒
 	auto fi_bi = FadeIn::create(0.5);
-	auto seq_bi = Sequence::create(delay_bi, fi_bi, NULL);
+	auto seq_bi = Sequence::create(delay_bi, fi_bi, nullptr);
 	bombIcon->runAction(seq_bi);
 	//道具2的数量label
 	char cBombIconNum[10];
@@ -144,7 +151,7 @@ bool Game::init()
 	bombIconLabel->setOpacity(0);
 	ActionInterval * delay_bil = DelayTime::create(5);   //每个sprite出现间隔0.4秒
 	auto fi_bil = FadeIn::create(0.5);
-	auto seq_bil = Sequence::create(delay_bil, fi_bil, NULL);
+	auto seq_bil = Sequence::create(delay_bil, fi_bil, nullptr);
 	bombIconLabel->runAction(seq_bil);
 	//让道具数字变红
 	if (UserDefault::getInstance()->getIntegerForKey("BombNum") == 0)
@@ -169,7 +176,7 @@ bool Game::init()
 	addChild(transBg, 7);
 	ActionInterval * delaytime_bg = CCDelayTime::create(1.5);
 	auto st_bg = ScaleTo::create(0.5, 1.5, 0.8);  //这里的x y比例不是原来图片的大小了，是setscale之后的大小了
-	auto sq_bg = Sequence::create(delaytime_bg, st_bg, NULL);
+	auto sq_bg = Sequence::create(delaytime_bg, st_bg, nullptr);
 	transBg->runAction(sq_bg);
 	//女孩飞入介绍城市
 	girl = Sprite::create("girl1.png");
@@ -178,7 +185,7 @@ bool Game::init()
 	addChild(girl, 15);
 	ActionInterval * delaytime_girl = CCDelayTime::create(2.0);
 	auto mt_girl = MoveTo::create(0.5, Vec2(50, visibleSize.height / 2));
-	auto sq_girl = Sequence::create(delaytime_girl, mt_girl, NULL);
+	auto sq_girl = Sequence::create(delaytime_girl, mt_girl, nullptr);
 	girl->runAction(sq_girl);
 	//2条label相反方向飞入
 	const char *str_welcome = ((String*)dic->objectForKey("welcome"))->_string.c_str();
@@ -192,7 +199,8 @@ bool Game::init()
 		welcome->removeAllChildrenWithCleanup(true);
 	});
 	ActionInterval * delaytime_welcome2 = CCDelayTime::create(2.0);
-	auto sq_welcome = Sequence::create(delaytime_welcome, mt_welcome, delaytime_welcome2, deleteWelcome, NULL);
+	auto sq_welcome = Sequence::create(
+		delaytime_welcome, mt_welcome, delaytime_welcome2, deleteWelcome, nullptr);
 	welcome->runAction(sq_welcome);
 	// 处理具体城市的名字
 	//城市string，保存各个城市的名字
@@ -211,7 +219,7 @@ bool Game::init()
 		spots->removeAllChildrenWithCleanup(true);
 	});
 	ActionInterval * delaytime_spots2 = CCDelayTime::create(2.0);
-	auto sq_spots = Sequence::create(delaytime_spots, mt_spots, delaytime_spots2, deleteSpots, NULL);
+	auto sq_spots = Sequence::create(delaytime_spots, mt_spots, delaytime_spots2, deleteSpots, nullptr);
 	spots->runAction(sq_spots);
 	//--------------------------------------------END 欢迎界面
 
@@ -231,7 +239,7 @@ bool Game::init()
 	auto musicReady = CallFunc::create([=]() {
 		//SimpleAudioEngine::getInstance()->playEffect("ready.OGG");
 	});
-	auto sq_ready = Sequence::create(delaytime_ready, musicReady, mt_ready, mt_ready_1, mt_ready_2, NULL);
+	auto sq_ready = Sequence::create(delaytime_ready, musicReady, mt_ready, mt_ready_1, mt_ready_2, nullptr);
 	readyLabel->runAction(sq_ready);
 	//go
 	auto goLabel = Label::createWithTTF("GO", "fonts/HANGTHEDJ.ttf", 100);
@@ -241,17 +249,17 @@ bool Game::init()
 	addChild(goLabel, 7);
 	auto fi_go = FadeIn::create(0.5);
 	auto st_go = ScaleTo::create(0.5, 1);
-	auto sp_go = Spawn::create(fi_go, st_go, NULL);
+	auto sp_go = Spawn::create(fi_go, st_go, nullptr);
 	ActionInterval * delaytime_go = CCDelayTime::create(6.3);
 	auto deleteBg = CallFunc::create([=]() {
 
 		transBg->removeFromParentAndCleanup(true);
 		goLabel->removeFromParentAndCleanup(true);
 		girl->removeFromParentAndCleanup(true);
-		//isGameReady = true;
+		isGameReady = true;///////游戏开始
 	});
 	ActionInterval * delaytime_wait = CCDelayTime::create(0.4);
-	auto sq_go = Sequence::create(delaytime_go, sp_go, delaytime_wait, deleteBg, NULL);
+	auto sq_go = Sequence::create(delaytime_go, sp_go, delaytime_wait, deleteBg, nullptr);
 	goLabel->runAction(sq_go);
 	//--------------------------------------------END ready go 动画
 
@@ -265,7 +273,7 @@ bool Game::init()
 			htp->setPosition(0, 0);
 			addChild(htp, 20);
 		});
-		auto seq_htp = Sequence::create(delaytime_htp, addHowToPlay, NULL);
+		auto seq_htp = Sequence::create(delaytime_htp, addHowToPlay, nullptr);
 		this->runAction(seq_htp);
 	}
 	//------------------------------------END 添加怎么玩的层,只有第一关才有
@@ -279,7 +287,7 @@ bool Game::init()
 	label2->setOpacity(0);
 	ActionInterval * delay_la = DelayTime::create(3.8);   //每个sprite出现间隔0.4秒
 	auto fi_la = FadeIn::create(0.5);
-	auto seq_la = Sequence::create(delay_la, fi_la, NULL);
+	auto seq_la = Sequence::create(delay_la, fi_la, nullptr);
 	label2->runAction(seq_la);
 	addChild(label2, 3);
 	//更新每一关的目标分数
@@ -292,7 +300,7 @@ bool Game::init()
 	targetScore_label->setOpacity(0);
 	ActionInterval * delay_ts = DelayTime::create(4.2);   //每个sprite出现间隔0.4秒
 	auto fi_ts = FadeIn::create(0.5);
-	auto seq_ts = Sequence::create(delay_ts, fi_ts, NULL);
+	auto seq_ts = Sequence::create(delay_ts, fi_ts, nullptr);
 	targetScore_label->runAction(seq_ts);
 	addChild(targetScore_label, 5);
 
@@ -303,7 +311,7 @@ bool Game::init()
 	level_label->setOpacity(0);
 	ActionInterval * delay_ll = DelayTime::create(5.4);   //每个sprite出现间隔0.4秒
 	auto fi_ll = FadeIn::create(0.5);
-	auto seq_ll = Sequence::create(delay_ll, fi_ll, NULL);
+	auto seq_ll = Sequence::create(delay_ll, fi_ll, nullptr);
 	level_label->runAction(seq_ll);
 	// 等级数目label-number
 	log("cur level: %d", curLevel);
@@ -316,7 +324,7 @@ bool Game::init()
 	levelNum_label->setOpacity(0);
 	ActionInterval * delay_lnl = DelayTime::create(5.6);   //每个sprite出现间隔0.4秒
 	auto fi_lnl = FadeIn::create(0.5);
-	auto seq_lnl = Sequence::create(delay_lnl, fi_lnl, NULL);
+	auto seq_lnl = Sequence::create(delay_lnl, fi_lnl, nullptr);
 	levelNum_label->runAction(seq_lnl);
 	//-------------------------------------END 每一关卡的目标和等级
 
@@ -350,7 +358,7 @@ bool Game::init()
 	ActionInterval * delay_dialog = DelayTime::create(2.7);
 	EaseOut * dialog_slow = EaseOut::create(mt_dialog, 7.0);
 	//由快到慢的动作，第二个参数是变化率
-	auto seq_dialog = Sequence::create(delay_dialog, dialog_slow, NULL);
+	auto seq_dialog = Sequence::create(delay_dialog, dialog_slow, nullptr);
 	dialog->runAction(seq_dialog);
 	addChild(dialog, 2);
 	//知识label
@@ -395,7 +403,7 @@ bool Game::init()
 	ActionInterval * delay_m2 = DelayTime::create(2.7);
 	EaseOut * m2_slow = EaseOut::create(mt_m2, 7.0);
 	//由快到慢的动作，第二个参数是变化率
-	auto seq_m2 = Sequence::create(delay_m2, m2_slow, NULL);
+	auto seq_m2 = Sequence::create(delay_m2, m2_slow, nullptr);
 	m2->runAction(seq_m2);
 	addChild(m2, 2);
 	//功能性icon的背景 
@@ -407,7 +415,7 @@ bool Game::init()
 	ActionInterval * delay_m3 = DelayTime::create(2.7);
 	EaseOut * m3_slow = EaseOut::create(mt_m3, 7.0);
 	//由快到慢的动作，第二个参数是变化率
-	auto seq_m3 = Sequence::create(delay_m3, m3_slow, NULL);
+	auto seq_m3 = Sequence::create(delay_m3, m3_slow, nullptr);
 	m3->runAction(seq_m3);
 	addChild(m3, 2);
 
@@ -416,12 +424,12 @@ bool Game::init()
 		CC_CALLBACK_1(Game::returnToMenu, this));
 	btm->setAnchorPoint(Point(0, 0));
 	btm->setScale(0.45);
-	auto btm_menu = Menu::create(btm, NULL);
+	auto btm_menu = Menu::create(btm, nullptr);
 	btm_menu->setPosition(visibleSize.width / 2 - 200, visibleSize.height - 105);
 	btm_menu->setOpacity(0);
 	ActionInterval * delay_btm = DelayTime::create(3.0);
 	auto fi_btm = FadeIn::create(0.5);
-	auto seq_btm = Sequence::create(delay_btm, fi_btm, NULL);
+	auto seq_btm = Sequence::create(delay_btm, fi_btm, nullptr);
 	btm_menu->runAction(seq_btm);
 	addChild(btm_menu, 3);
 	//重新开始按钮
@@ -429,12 +437,12 @@ bool Game::init()
 		CC_CALLBACK_1(Game::restartGame, this));
 	res->setAnchorPoint(Point(0, 0));
 	res->setScale(0.45);
-	auto res_menu = Menu::create(res, NULL);
+	auto res_menu = Menu::create(res, nullptr);
 	res_menu->setPosition(visibleSize.width / 2 - 140, visibleSize.height - 100);
 	res_menu->setOpacity(0);
 	ActionInterval * delay_res = DelayTime::create(3.4);   //每个sprite出现间隔0.4秒
 	auto fi_res = FadeIn::create(0.5);
-	auto seq_res = Sequence::create(delay_res, fi_res, NULL);
+	auto seq_res = Sequence::create(delay_res, fi_res, nullptr);
 	res_menu->runAction(seq_res);
 	addChild(res_menu, 3);
 	//-------------------------------------------------END 背景图片,3个最上面的
@@ -454,13 +462,13 @@ bool Game::init()
 	label_score->setPosition(visibleSize.width / 2 - 15, visibleSize.height - 150);
 	addChild(label_score, 3);
 	auto st = ScaleBy::create(1.0, 1.1);
-	auto sq = Sequence::create(st, st->reverse(), NULL);
+	auto sq = Sequence::create(st, st->reverse(), nullptr);
 	auto rp = RepeatForever::create(sq);
 	label_score->runAction(rp);
 	label_score->setOpacity(0);
 	ActionInterval * delay_ls = DelayTime::create(6);   //每个sprite出现间隔0.4秒
 	auto fi_ls = FadeIn::create(0.5);
-	auto seq_ls = Sequence::create(delay_ls, fi_ls, NULL);
+	auto seq_ls = Sequence::create(delay_ls, fi_ls, nullptr);
 	label_score->runAction(seq_ls);
 	//-------------------------END 当前分数的初始化及显示
 
@@ -473,12 +481,6 @@ bool Game::init()
 	gameEnd->setScale(0.85);
 	addChild(gameEnd, 5);
 	gameEnd->setVisible(false);
-
-
-
-
-
-
 
 
 	//初始化数据统计
@@ -709,16 +711,16 @@ bool Game::init()
 
 	/////////////////////////剩余奖励icon
 	// icon
-	auto leftBonusBox = Sprite::create("leftBonus.png");  //大小写问题，vs忽略大小写，adnroid不忽略，卧槽
+	leftBonusBox = Sprite::create("leftBonus.png");  //大小写问题，vs忽略大小写，adnroid不忽略，卧槽
 	leftBonusBox->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	leftBonusBox->setScale(1);
 	leftBonusBox->setOpacity(0);
 	addChild(leftBonusBox, 6);
-	// 下一关 menuitem
-	auto nextLevel = MenuItemImage::create("menu.png", "menu.png", 
+	//////////////// 下一关 menuitem
+	nextLevel = MenuItemImage::create("menu.png", "menu.png", 
 		CC_CALLBACK_1(Game::goToNextLevel, this));
 	nextLevel->setScale(0.5);
-	auto menuNextLevel = Menu::create(nextLevel, NULL);
+	auto menuNextLevel = Menu::create(nextLevel, nullptr);
 	menuNextLevel->setPosition(visibleSize.width / 2, visibleSize.height - 600);
 	menuNextLevel->setVisible(false);
 	addChild(menuNextLevel, 6);
@@ -726,9 +728,8 @@ bool Game::init()
 	const char *str_nextLevel = ((String*)dic->objectForKey("nextLevel"))->_string.c_str();
 	auto nextLevelLabel = Label::createWithTTF(str_nextLevel, "fonts/b.ttf", 20);
 	nextLevelLabel->setPosition(visibleSize.width / 2 - 5, visibleSize.height - 600);
-	addChild(nextLevelLabel, 7);
 	nextLevelLabel->setVisible(false);
-	
+	addChild(nextLevelLabel, 7);
 
 
 
@@ -741,48 +742,322 @@ bool Game::init()
 	//添加装备
 	addEquipment();
 
-
-	// TODO....
-
-
 	//初始化记录5个icon的数组
-	//icon_map.insert(std::make_pair(icon[0], 0));
-	//icon_map.insert(std::make_pair(icon[1], 0));
-	//icon_map.insert(std::make_pair(icon[2], 0));
-	//icon_map.insert(std::make_pair(icon[3], 0));
-	//icon_map.insert(std::make_pair(icon[4], 0));
+	icon_map.insert(std::make_pair(icon[0], 0));
+	icon_map.insert(std::make_pair(icon[1], 0));
+	icon_map.insert(std::make_pair(icon[2], 0));
+	icon_map.insert(std::make_pair(icon[3], 0));
+	icon_map.insert(std::make_pair(icon[4], 0));
+
+
+
+	/// 触摸事件
+	auto dispatcher = Director::getInstance()->getEventDispatcher();
+	
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->onTouchBegan = [=](Touch* pTouch, Event* pEvent) {
+		std::string info[20] = { "evernote", "forrst", "google", "instagram", "skype", "vimeo", "rss", "bloggr", "deviantart", "digg", "dribbble", "facebook", "flickr", "linkedin", "pinterest", "share", "stumble", "tumblr", "twitter", "youtube" };
+		srand(time(nullptr));
+		
+		auto touchPosition = pTouch->getLocation();
+
+		if (touchPosition.x >= 25 && touchPosition.y <= 475
+			&& touchPosition.y >= 145 && touchPosition.y <= 590
+			&& isGameReady == true) {
+			log("onTouchBegan: touch vialid...");
+
+			int row = (int)(590 - touchPosition.y) / 45;
+			int column = (int)(touchPosition.x - 25) / 45;
+			if (getDataManager().getIsChangeLayerAdded() == false
+				&& getDataManager().getIsBombLayerAdded() == false) {
+				log("x: %f y: %f\n", touchPosition.x, touchPosition.y);
+				log("矩阵坐标: x: %d y: %d", (int)(540 - touchPosition.y) / 45, (int)(touchPosition.x - 25) / 45);
+
+
+				if (!timerRunning)
+				{
+					if (!isGameOver())
+					{
+						this->startTimer();//开始计时
+					}
+
+				}
+			}
+			else if (getDataManager().getIsChangeLayerAdded() == true) {
+			
+			}
+			else if (getDataManager().getIsBombLayerAdded() == true) {
+			
+			}
+		}
+
+		return true;
+	};
+	listener->onTouchEnded = [=](Touch* pTouch, Event* pEvent) {
+		log("onTouchEnded touch vialid...");
+	};
+	listener->setSwallowTouches(true);
+	dispatcher->addEventListenerWithSceneGraphPriority(listener, this);
+
+
 
 	return true;
 }
 
 
-//warning回调函数
-void Game::warningCallback(cocos2d::Ref *r)
-{}
+
+
 
 
 //道具函数： 改变种类
 void Game::changeIconType(Ref * r)
-{}
+{
+	if (getDataManager().getIsEnableEffect() == true 
+		&& UserDefault::getInstance()->getIntegerForKey("ChangeNum") > 0)
+	{
+		SimpleAudioEngine::getInstance()->playEffect("button.OGG");
+	}
+	if (UserDefault::getInstance()->getIntegerForKey("ChangeNum") <= 0)
+	{
+		// 显示道具不足
+		auto  action = Sequence::create(
+				CallFunc::create([=]() {
+					m_pItemNotEnoughSprite->setVisible(true);
+				}),
+				FadeOut::create(1.0f), 
+				nullptr);
+		m_pItemNotEnoughSprite->runAction(action);
+
+
+		SimpleAudioEngine::getInstance()->playEffect("buyFail.OGG");
+	}
+	else
+	{
+		if (getDataManager().getIsChangeLayerAdded() == false 
+			&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+		{
+			auto changeIconView = ChangeIconPrefab::create();
+			changeIconView->setPosition(Vec2(0, 0));
+			this->addChild(changeIconView, 20);
+			getDataManager().setIsChangeLayerAdded(true);
+			/*changeIconLayer * cil = changeIconLayer::create();
+			cil->setPosition(0, 0);
+			addChild(cil, 20);
+			getDataManager().setIsChangeLayerAdded(true);*/
+		}
+	}
+}
 
 //道具函数： 爆炸icon
 void Game::bombIconType(Ref * r)
-{}
+{
+	if (getDataManager().getIsEnableEffect() == true 
+		&& UserDefault::getInstance()->getIntegerForKey("BombNum") > 0)
+	{
+		SimpleAudioEngine::getInstance()->playEffect("button.OGG");
+	}
+	if (UserDefault::getInstance()->getIntegerForKey("BombNum") <= 0)
+	{
+		// 显示道具不足
+		auto  action = Sequence::create(
+			CallFunc::create([=]() {
+			m_pItemNotEnoughSprite->setVisible(true);
+		}),
+			FadeOut::create(1.0f),
+			nullptr);
+		m_pItemNotEnoughSprite->runAction(action);
+
+		SimpleAudioEngine::getInstance()->playEffect("buyFail.OGG");
+	}
+	else
+	{
+		if (getDataManager().getIsChangeLayerAdded() == false 
+			&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+		{
+			log("ddddd");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			tower1 = nullptr;
+			tower2 = nullptr;
+			missile1 = nullptr;
+			missile2 = nullptr;
+
+		/*	bombIconLayer * bil = bombIconLayer::create();*/
+			auto bil = BombIconPrefab::create();
+			bil->setPosition(Vec2(0, 0));
+			this->addChild(bil, 20);
+
+			getDataManager().setIsBombLayerAdded(true);
+
+		}
+	}
+
+}
 
 void Game::returnToMenu(cocos2d::Ref* r)
-{}
+{
+	if (getDataManager().getIsChangeLayerAdded() == false
+		&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+	{
+		//在这里得更新当前分数,方便暂停层使用
+		getDataManager().setCurrentScore(currentScore);
 
-//重新开始
+		auto gamePauseLayer = GamePauseController::create();
+		gamePauseLayer->setPosition(0, 0);
+		this->addChild(gamePauseLayer, 9);
+	}
+}
+
+// 重新开始
 void Game::restartGame(cocos2d::Ref* r)
-{}
+{
+	if (getDataManager().getIsChangeLayerAdded() == false 
+		&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+	{
+		Director::getInstance()->replaceScene(
+			TransitionCrossFade::create(1.0f, WelcomeSceneController::createScene()));
+	}
+}
 
+// 进入下一关
 void Game::goToNextLevel(Ref * r)
-{}
+{
+	int tempIncrement = getDataManager().getScoreIncrement();
+	getDataManager().setScoreIncrement(tempIncrement + 100);
+	getDataManager().setCurrentScore(currentScore);
+
+	//更新下一关目标分数
+	getDataManager().setLevelTargetScore(target_score + tempIncrement);
+	getDataManager().setGameLevel(curLevel + 1);
+	//更新道具个数
+	/*int tempChange = getDataManager().getChangeIconNum();
+	getDataManager().setChangeIconNum(tempChange + 1);
+	int tempBomb = getDataManager().getBombIconNum();
+	getDataManager().setBombIconNum(tempBomb + 1);*/
+
+	if (curLevel + 1 <= 20)
+	{
+		Director::getInstance()->replaceScene(
+			TransitionFade::create(1, Game::createScene()));
+	}
+	else
+	{
+		Director::getInstance()->replaceScene(
+			TransitionFade::create(1, FinalSceneController::createScene()));
+	}
+}
 
 //生产所有点阵
 void Game::generatePoint()
-{}
+{
+	int i, j;
+	srand(time(NULL));
+	//20个图标中随机选取5个	
+
+	PointArray *p = new PointArray();
+	p->initWithCapacity(20);
+	for (i = 1; i <= 20; i++)
+	{
+		p->addControlPoint(Point(i, 0));
+	}
+
+
+	// 在这里初始化getDataManager中的vector
+	getDataManager().clearIconVec();
+	for (i = 1; i <= 5; i++)
+	{
+		int randNum = rand() % p->count();
+		int temp = (p->getControlPointAtIndex(randNum)).x;
+		icon.push_back(temp);
+		getDataManager().setIconVec(temp);
+		p->removeControlPointAtIndex(randNum);
+	}
+
+	//log("%d %d %d %d %d", icon[0], icon[1], icon[2], icon[3], icon[4]);	
+
+	for (i = 0; i < 10; i++)
+		for (j = 0; j < 10; j++)
+		{
+			int min = 0, max = 5;
+			int range = max - min;
+			int number = rand() % range + 1;
+			board[i][j] = icon[number - 1];
+			//board[i][j] = icon[0];
+
+		}
+
+}
 
 //添加装备(10*10)
 void Game::addEquipment()
+{
+	int row, column;
+	for (row = 0; row < 10; row++)
+	{
+
+		for (column = 0; column < 10; column++)
+		{
+			int temp = board[row][column];
+			if (temp != 0)
+			{
+				char num[10] = "";
+				sprintf(num, "%d", temp);
+				std::string n = num;
+				std::string name = "level1_" + n + ".png";
+				Sprite * s = Sprite::create(name);
+				s->setAnchorPoint(Point(0, 0));
+				s->setScale(0.001);
+				s->setPosition(Point(25 + column * 45, 550 - row * 45));
+				addChild(s, 2);
+				//动画效果
+				auto st = ScaleTo::create(0.8, 0.36);
+				ActionInterval * delay = DelayTime::create(4);
+				auto sq = Sequence::create(delay, st, NULL);
+				s->runAction(sq);
+
+				equip.pushBack(s);
+				equipment[row][column] = s;//将装备放入对应的数组中
+			}
+		}
+	}
+}
+
+
+//检测游戏是否结束：即没有2个相连的装备
+bool Game::isGameOver()
+{
+	int i, j, count = 0;
+	bool isGameOver = true;
+	for (i = 0; i < 10; i++)
+	{
+		for (j = 0; j < 10; j++)
+		{
+			if (board[i][j] != 0)//别忘了这句话
+			{
+				if (board[i - 1][j] == board[i][j] || board[i + 1][j] == board[i][j] || board[i][j - 1] == board[i][j] || board[i][j + 1] == board[i][j])
+				{
+
+					isGameOver = false;
+				}
+			}
+		}
+	}
+
+	return isGameOver;
+}
+
+
+void Game::startTimer()
 {}

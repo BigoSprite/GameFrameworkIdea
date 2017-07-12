@@ -23,7 +23,7 @@ std::vector<int> DataManager::getIconVec()
 	return this->iconVec;
 }
 
-void DataManager::addIconVec(int value)
+void DataManager::setIconVec(int value)
 {
 	iconVec.push_back(value);
 }

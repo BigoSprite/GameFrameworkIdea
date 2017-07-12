@@ -82,7 +82,7 @@ menuNext = Menu::create(next, NULL);
 	设置吞没函数，为true，而且ontouchbegin函数返要是true*/
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = [=](Touch *t, Event *e) {
-		log("touched...");
+		//log("touched...");
 		return true;
 
 	};
