@@ -24,9 +24,8 @@ private:
 	Sprite* m_pBackground;
 	Label* m_pDesLabel;
 	Label* m_pTitle;
-	MenuItemImage* m_pCloseItem;
+	MenuItemSprite* m_pCloseItem;
 	Menu* m_pCloseMenu;
-	Label* m_pCloseLabel;
 
 	Sprite* m_pIcon1;
 	Sprite* m_pIcon2;

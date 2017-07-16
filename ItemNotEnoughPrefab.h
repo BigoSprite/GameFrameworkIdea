@@ -17,7 +17,7 @@ private:
 	Sprite* m_pYellowIcon;
 	Label* m_pNotEnoughDes;
 	Menu* m_pMenu;
-	Label* m_pButtonLabel;
+	MenuItemSprite* m_pCloseItem;
 
 	void __onOkButtonClickedCallback(Ref* pRef);
 

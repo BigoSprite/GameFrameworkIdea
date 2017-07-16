@@ -21,66 +21,54 @@ bool ContinueLastGameView::init()
 	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	auto size = this->getContentSize();
 
+	// 黑色背景
 	m_pBackground = Sprite::create("mainback.png");
 	m_pBackground->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	this->addChild(m_pBackground);
+	this->addChild(m_pBackground, -1);
 
-
-	//选择文字
-	//用xml保存中文，记得xml文件要存在resource文件夹里面才行
-	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
-	const char *str_des = ((String*)dic->objectForKey("isContinue1"))->_string.c_str();
-	m_pDescreption1 = Label::createWithTTF(str_des, "fonts/b.ttf", 23);
-	m_pDescreption1->setPosition(size.width / 2, size.height / 2 + 210);
-	addChild(m_pDescreption1, 6);
-
-	const char *str_des2 = ((String*)dic->objectForKey("isContinue2"))->_string.c_str();
-	m_pDescreption2 = Label::createWithTTF(str_des2, "fonts/b.ttf", 23);
-	m_pDescreption2->setPosition(size.width / 2 + 180, size.height / 2 + 210);
-	addChild(m_pDescreption2, 6);
-
-
-
-
-	//2个menu框
-	m_pLeftMenuItem = MenuItemImage::create("menu.png", "menu.png",
+	//////////////////////////// 提示框
+	// 背景
+	m_pTipBg = Sprite::create("tip_bg_1.png");
+	m_pTipBg->setPosition(size.width/2, size.height/2 + 100);
+	this->addChild(m_pTipBg, 0);
+	auto tipBgSize = m_pTipBg->getContentSize();
+	//// 是-btn
+	auto normal_1 = Sprite::create("yesBtn_1.png");
+	auto selected_1 = Sprite::create("yesBtn_2.png");
+	m_pLeftMenuItem = MenuItemSprite::create(normal_1, selected_1,
 		CC_CALLBACK_1(ContinueLastGameView::gameStart, this));
-	m_pLeftMenuItem->setScale(0.5);
-	auto leftMenu = Menu::create(m_pLeftMenuItem, NULL);
-	leftMenu->setPosition(size.width / 2 - 15, size.height / 2 + 150);
-	addChild(leftMenu, 6);
-
-	m_pRightMenuItem = MenuItemImage::create("menu.png", "menu.png",
+	auto menu = Menu::create(m_pLeftMenuItem, nullptr);
+	menu->setPosition(tipBgSize.width / 2 - 36, normal_1->getContentSize().height / 2 + 7);
+	m_pTipBg->addChild(menu, 0);
+	//// 否-btn
+	auto normal_2 = Sprite::create("noBtn_1.png");
+	auto selected_2 = Sprite::create("noBtn_2.png");
+	m_pRightMenuItem = MenuItemSprite::create(normal_2, selected_2,
 		CC_CALLBACK_1(ContinueLastGameView::gameStartNew, this));
-	m_pRightMenuItem->setScale(0.5);
-	auto rightMenu = Menu::create(m_pRightMenuItem, NULL);
-	rightMenu->setPosition(size.width / 2 + 130, size.height / 2 + 150);
-	addChild(rightMenu, 6);
-
-
-	//是和否的label
-	const char *str_yes = ((String*)dic->objectForKey("yes"))->_string.c_str();
-	m_pYesLabel = Label::createWithTTF(str_yes, "fonts/b.ttf", 25);
-	m_pYesLabel->setPosition(size.width / 2 - 15, size.height / 2 + 150);
-	addChild(m_pYesLabel, 7);
-
-	const char *str_no = ((String*)dic->objectForKey("no"))->_string.c_str();
-	m_pNoLabel = Label::createWithTTF(str_no, "fonts/b.ttf", 25);
-	m_pNoLabel->setPosition(size.width / 2 + 130, size.height / 2 + 150);
-	addChild(m_pNoLabel, 7);
-
-
-
-
-	//关卡数
+	auto menu_2 = Menu::create(m_pRightMenuItem, nullptr);
+	menu_2->setPosition(tipBgSize.width / 2 + 36, normal_1->getContentSize().height / 2 + 7);
+	m_pTipBg->addChild(menu_2, 0);
+	//// 选择文字
+	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
+	// title
+	const char *str_des2 = ((String*)dic->objectForKey("isContinue_title"))->_string.c_str();
+	m_pDescreption2 = Label::createWithTTF(str_des2, "fonts/b.ttf", 22);
+	m_pDescreption2->setPosition(tipBgSize.width / 2 + 10, tipBgSize.height / 2 + 40);
+	m_pTipBg->addChild(m_pDescreption2, 0);
+	// content
+	const char *str_des = ((String*)dic->objectForKey("isContinue_content"))->_string.c_str();
+	m_pDescreption1 = Label::createWithTTF(str_des, "fonts/b.ttf", 18);
+	m_pDescreption1->setPosition(tipBgSize.width / 2, tipBgSize.height / 2 + 9);
+	m_pTipBg->addChild(m_pDescreption1, 0);
+	////关卡数
 	char c[10];
 	int tempLevel = UserDefault::getInstance()->getIntegerForKey("level_Global");
 	sprintf(c, "%d", tempLevel);
 	std::string str = c;
-	m_pLevelNum = Label::createWithTTF(str, "fonts/b.ttf", 25);
+	m_pLevelNum = Label::createWithTTF(str, "fonts/b.ttf", 18);
 	m_pLevelNum->setColor(Color3B(242, 221, 28));
-	m_pLevelNum->setPosition(size.width / 2 + 110, size.height / 2 + 210);
-	addChild(m_pLevelNum, 7);
+	m_pLevelNum->setPosition(m_pDescreption1->getPosition().x + m_pDescreption1->getContentSize().width/2 + 6, m_pDescreption1->getPosition().y);
+	m_pTipBg->addChild(m_pLevelNum, 0);
 
 
 

@@ -27,56 +27,52 @@ bool GamePauseController::init()
 
 	bg = Sprite::create("mainback.png");
 	bg->setPosition(size.width / 2, size.height / 2);
-	addChild(bg, 10);
+	this->addChild(bg, -1);
 
-	dialog = Sprite::create("gameEnd.png");
+	dialog = Sprite::create("gamePause_bg.png");
 	dialog->setPosition(size.width / 2, size.height / 2);
 	dialog->setScale(0.85);
-	addChild(dialog, 11);
+	this->addChild(dialog, 0);
 
-	//一些label
-	const char *str_pause = ((String*)dic->objectForKey("gamePause"))->_string.c_str();
-	pauseLabel = Label::createWithTTF(str_pause, "fonts/b.ttf", 40);
-	pauseLabel->setPosition(size.width / 2, size.height - 280);
-	addChild(pauseLabel, 12);
+	////一些label
+	//const char *str_pause = ((String*)dic->objectForKey("gamePause"))->_string.c_str();
+	//pauseLabel = Label::createWithTTF(str_pause, "fonts/b.ttf", 40);
+	//pauseLabel->setPosition(size.width / 2, size.height - 280);
+	//addChild(pauseLabel, 12);
 
-	pointer1 = Sprite::create("pointer.png");
-	pointer1->setPosition(size.width / 2 - 100, size.height - 280);
-	pointer1->setScale(1.5);
-	pointer1->setRotation(90);
-	addChild(pointer1, 12);
+	//pointer1 = Sprite::create("pointer.png");
+	//pointer1->setPosition(size.width / 2 - 100, size.height - 280);
+	//pointer1->setScale(1.5);
+	//pointer1->setRotation(90);
+	//addChild(pointer1, 12);
 
-	pointer2 = Sprite::create("pointer.png");
-	pointer2->setPosition(size.width / 2 + 100, size.height - 280);
-	pointer2->setScale(1.5);
-	pointer2->setRotation(-90);
-	addChild(pointer2, 12);
+	//pointer2 = Sprite::create("pointer.png");
+	//pointer2->setPosition(size.width / 2 + 100, size.height - 280);
+	//pointer2->setScale(1.5);
+	//pointer2->setRotation(-90);
+	//addChild(pointer2, 12);
 
 	//继续游戏菜单
-	resume = MenuItemImage::create("menu.png", "menu.png", 
+	resume = MenuItemImage::create("continueGame_1.png", "continueGame_2.png", 
 		CC_CALLBACK_1(GamePauseController::resumeGame, this));
-	resume->setScale(0.7);
 	auto resumeMenu = Menu::create(resume, NULL);
-	resumeMenu->setPosition(size.width / 2, size.height - 450);
-	addChild(resumeMenu, 12);
+	resumeMenu->setAnchorPoint(Vec2::ANCHOR_MIDDLE_RIGHT);
+	resumeMenu->setPosition(
+		size.width / 2 - resume->getContentSize().width + 25,
+		resume->getContentSize().height/2 + 15);
+	dialog->addChild(resumeMenu, 1);
 
-	const char *str_resume = ((String*)dic->objectForKey("continue"))->_string.c_str();
-	label1 = Label::createWithTTF(str_resume, "fonts/b.ttf", 30);
-	label1->setPosition(size.width / 2 - 5, size.height - 450);
-	addChild(label1, 13);
 
-	//返回主菜单
-	mainMenu = MenuItemImage::create("menu.png", "menu.png", 
+	// 保存退出
+	mainMenu = MenuItemImage::create("saveQuit_1.png", "saveQuit_2.png", 
 		CC_CALLBACK_1(GamePauseController::goBackToMenu, this));
-	mainMenu->setScale(0.7);
 	auto mainMenuMenu = Menu::create(mainMenu, NULL);
-	mainMenuMenu->setPosition(size.width / 2, size.height - 525);
-	addChild(mainMenuMenu, 12);
+	mainMenuMenu->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	mainMenuMenu->setPosition(
+		size.width / 2 + 30, 
+		resume->getContentSize().height / 2 + 15);
+	dialog->addChild(mainMenuMenu, 1);
 
-	const char *str_menu = ((String*)dic->objectForKey("saveExit"))->_string.c_str();
-	label2 = Label::createWithTTF(str_menu, "fonts/b.ttf", 22);
-	label2->setPosition(size.width / 2 - 5, size.height - 525);
-	addChild(label2, 13);
 
 	//背景音乐打开
 	bgmSprite = Sprite::create("bgm_on.png");
@@ -84,7 +80,7 @@ bool GamePauseController::init()
 	bgm_on = MenuItemSprite::create(bgmSprite, bgmSprite, 
 		CC_CALLBACK_1(GamePauseController::bgmOnOff, this));
 	auto menuBGMON = Menu::create(bgm_on, NULL);
-	menuBGMON->setPosition(size.width / 2 - 80, size.height / 2 + 40);
+	menuBGMON->setPosition(size.width / 2 - 80, size.height / 2);
 	addChild(menuBGMON, 13);
 
 	/*if (!SimpleAudioEngine::getInstance()->isBackgroundMusicPlaying())
@@ -98,7 +94,7 @@ bool GamePauseController::init()
 	effect_on = MenuItemSprite::create(effectSprite, effectSprite, 
 		CC_CALLBACK_1(GamePauseController::effectOnOff, this));
 	auto menuEFFECTON = Menu::create(effect_on, NULL);
-	menuEFFECTON->setPosition(size.width / 2 + 30, size.height / 2 + 40);
+	menuEFFECTON->setPosition(size.width / 2 + 30, size.height / 2);
 	addChild(menuEFFECTON, 13);
 
 	/*if (getDataManager().getEffect() == false)

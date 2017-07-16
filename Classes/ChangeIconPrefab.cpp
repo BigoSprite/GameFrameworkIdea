@@ -22,7 +22,8 @@ bool ChangeIconPrefab::init()
 	visibleSize = Director::getInstance()->getVisibleSize();
 
 	// 背景
-	m_pBackground = Sprite::create("changeLayerBg.png");
+	m_pBackground = Sprite::create("tip_bg_1.png");
+	m_pBackground->setScale(1.2f);
 	m_pBackground->setPosition(visibleSize.width / 2, visibleSize.height + 250);
 	m_pBackground->runAction(MoveTo::create(0.5, Vec2(visibleSize.width / 2, visibleSize.height - 100)));
 	this->addChild(m_pBackground);
@@ -37,22 +38,16 @@ bool ChangeIconPrefab::init()
 	this->addChild(m_pDesLabel, 2);
 
 	//关闭按钮
-	m_pCloseItem = MenuItemImage::create("menu.png", "menu.png", 
+	auto close_normal = Sprite::create("closeBtn_1.png");
+	auto close_selected = Sprite::create("closeBtn_2.png");
+	m_pCloseItem = MenuItemSprite::create(close_normal, close_selected,
 		CC_CALLBACK_1(ChangeIconPrefab::closeMenuCallback, this));
-	m_pCloseItem->setScale(0.4);
-	m_pCloseMenu = Menu::create(m_pCloseItem, NULL);
+	m_pCloseMenu = Menu::create(m_pCloseItem, nullptr);
 	m_pCloseMenu->setPosition(visibleSize.width / 2, visibleSize.height + 180);
 	auto mt_close = MoveTo::create(0.5, Vec2(visibleSize.width / 2, visibleSize.height - 170));
 	this->addChild(m_pCloseMenu, 2);
 	m_pCloseMenu->runAction(mt_close);
 
-	//关闭按钮的文字
-	const char *str_shut = ((String*)dic->objectForKey("shutdown"))->_string.c_str();
-	m_pCloseLabel = Label::createWithTTF(str_shut, "fonts/b.ttf", 20);
-	m_pCloseLabel->setPosition(visibleSize.width / 2 - 3, visibleSize.height + 180);
-	auto mt_closeLabel = MoveTo::create(0.5, Vec2(visibleSize.width / 2, visibleSize.height - 170));
-	addChild(m_pCloseLabel, 3);
-	m_pCloseLabel->runAction(mt_closeLabel);
 
 	// 5个不同的icon///////////////////////////////
 	//Game* game = new Game();//////////////////test
@@ -120,8 +115,6 @@ bool ChangeIconPrefab::init()
 	m_pIconList.pushBack(m_pIcon5);
 	
 
-
-
 	//////////////////////////////////触摸事件
 	m_pLast = nullptr;
 	auto listener = EventListenerTouchOneByOne::create();
@@ -144,7 +137,6 @@ bool ChangeIconPrefab::init()
 				m_pIconList.at(i)->runAction(rp);
 				m_pLast = m_pIconList.at(i);
 
-
 				///////////////更新
 				getDataManager().setSelectedIconValue(m_pIconList.at(i)->getTag()); //通过tag获取其board值
 				break;
@@ -153,8 +145,11 @@ bool ChangeIconPrefab::init()
 
 		return false;
 	};
+	listener->onTouchEnded = [=](Touch* pTouch, Event* pEvent) {
+		
+	};
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
-	return true;
+
 
 	return true;
 }
@@ -171,9 +166,6 @@ void ChangeIconPrefab::closeMenuCallback(Ref* pRef)
 
 	auto mt_bg = MoveTo::create(0.5, Vec2(visibleSize.width / 2, visibleSize.height + 250));
 	m_pBackground->runAction(mt_bg);
-
-	auto mt_cl = MoveTo::create(0.5, Vec2(visibleSize.width / 2, visibleSize.height + 180));
-	m_pCloseLabel->runAction(mt_cl);
 
 
 

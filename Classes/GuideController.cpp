@@ -11,69 +11,63 @@ bool GuideController::init()
 	if (!BaseController::init())
 		return false;
 
-	//用xml保存中文，记得xml文件要存在resource文件夹里面才行
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
+	vs = Director::getInstance()->getVisibleSize();
 
-	Size vs = Director::getInstance()->getVisibleSize();
-	// 背景
+	////////////背景
 	auto bg = Sprite::create("mainback.png");
 	bg->setPosition(vs.width / 2, vs.height / 2);
-	addChild(bg);
+	this->addChild(bg, -1);
+
+	////////////对话框
+	auto dialog = Sprite::create("dialog_bg.png");
+	dialog->setScale(0.00001f);
+	dialog->setPosition(vs.width / 2, vs.height / 2);
+	this->addChild(dialog, 0);
 
 
 	//1 秋晓萌飞入动画：从左边外面进场
-    girl = Sprite::create("girl1.png");
+    girl = Sprite::create("teemo.png");
 	girl->setScale(0.20);
 	girl->setPosition(-100, vs.height / 2);
-	addChild(girl, 4);
+	this->addChild(girl, 1);
 	// 动画
 	auto mt_girl_1 = MoveTo::create(1, Vec2(100, vs.height / 2));
 	EaseOut * eo_mt_girl_1 = EaseOut::create(mt_girl_1, 7.0);
 	girl->runAction(eo_mt_girl_1);
 	// 文字
-	const char *str_1 = ((String*)dic->objectForKey("htp1"))->_string.c_str();
-function = Label::createWithTTF(str_1, "fonts/b.ttf", 20);
-	function->setDimensions(190, 300);
-	function->setPosition(vs.width / 2 + 40, vs.height / 2 - 80);
-	function->setVisible(false);
-	addChild(function, 5);
+	const char *str_1 = ((String*)dic->objectForKey("guide_intro_1"))->_string.c_str();
+	m_pIntroDes = Label::createWithTTF(str_1, "fonts/b.ttf", 18);
+	m_pIntroDes->setDimensions(190, 300);
+	m_pIntroDes->setPosition(vs.width / 2 + 20, vs.height / 2 - 110);
+	m_pIntroDes->setVisible(false);
+	this->addChild(m_pIntroDes, 1);
 
 	//下一项按钮
-	auto hand = Sprite::create("back.png");
-	hand->setFlippedY(true);
-	hand->setScale(0.7);
+	auto nextItem_normal = Sprite::create("nextItemBtn_1.png");
+	auto nextItem_selected = Sprite::create("nextItemBtn_2.png");
+	next = MenuItemSprite::create(nextItem_normal, nextItem_selected,
+		CC_CALLBACK_1(GuideController::nextIntro, this));
 
-next = MenuItemSprite::create(hand, hand, 
-		CC_CALLBACK_1(GuideController::nextIntro, this));  //这样能够使x轴翻转
-menuNext = Menu::create(next, NULL);
-
-	menuNext->setPosition(vs.width / 2 + 50, vs.height / 2 - 30);
-	addChild(menuNext, 5);
-	auto st = ScaleBy::create(1, 0.8);
-	auto sq = Sequence::create(st, st->reverse(), NULL);
-	auto rp = RepeatForever::create(sq);
-	next->runAction(rp);
+	menuNext = Menu::create(next, nullptr);
+	menuNext->setScale(0.9f);
+	menuNext->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	menuNext->setPosition(vs.width / 2 - 25, vs.height / 2 - 90);
 	menuNext->setVisible(false);
+	this->addChild(menuNext, 1);
 
 
-	// dialog
-	auto dialog = Sprite::create("gameEnd.png");
-	dialog->setScale(0.001);
-	dialog->setPosition(vs.width / 2 + 30, vs.height / 2);
-	//dialog动画
-	auto dialog_st = ScaleTo::create(0.5, 0.45);
+
+	//对话框动画
+	auto dialog_st = ScaleTo::create(0.5f, 0.8f);
 	ActionInterval * delay_dst = DelayTime::create(1.2);
 	auto vis = CallFunc::create([=]() {
 
-
 		menuNext->setVisible(true);
-		function->setVisible(true);
-
-
+		m_pIntroDes->setVisible(true);
 	});
-	auto seq_dst = Sequence::create(delay_dst, dialog_st, vis, NULL);
-	dialog->runAction(seq_dst);
-	addChild(dialog, 4);
+	dialog->runAction(Sequence::create(delay_dst, dialog_st, vis, nullptr));
+
 
 
 
@@ -106,41 +100,41 @@ Scene* GuideController::createScene()
 }
 
 //NEXT介绍回调函数
-void GuideController::nextIntro(cocos2d::Ref * r)
+void GuideController::nextIntro(Ref * r)
 {
 	progress++;
 
 	switch (progress)
 	{
 	case 1:
-		girlMove("htp2", 740, Point(30, 740)); //这个函数要改变label的内容和girl的位置
+		teemoMoving("guide_intro_2", 730, Point(50, 730));
 		break;
 	case 2:
-		girlMove("htp3", 750, Point(150, 750));
+		teemoMoving("guide_intro_3", 750, Point(250, 750));
 		break;
 	case 3:
-		girlMove("htp4", 730, Point(300, 730));
+		teemoMoving("guide_intro_4", 730, Point(350, 730));
 		break;
 	case 4:
-		girlMove("htp5", 730, Point(360, 730));
+		teemoMoving("guide_intro_5", 730, Point(400, 730));
 		break;
 	case 5:
-		girlMove("htp6", 650, Point(30, 650));
+		teemoMoving("guide_intro_6", 650, Point(45, 650));
 		break;
 	case 6:
-		girlMove("htp7", 650, Point(150, 650));
+		teemoMoving("guide_intro_7", 650, Point(250, 650));
 		break;
 	case 7:
-		girlMove("htp8", 400, Point(100, 400));
+		teemoMoving("guide_intro_8", 400, Point(100, 400));
 		break;
 	case 8:
-		girlMove("htp9", 50, Point(450, 50));
+		teemoMoving("guide_intro_9", 50, Point(450, 50));
 		break;
 	case 9:
-		girlMove("htp10", 400, Point(100, 400));
+		teemoMoving("guide_intro_10", 400, Point(245, 400));
 		break;
 	case 10:
-		girlMove("htp11", 400, Point(100, 400));
+		teemoMoving("guide_intro_11", 400, Point(100, 400));
 		break;
 	case 11:
 		deleteLayer();
@@ -149,12 +143,11 @@ void GuideController::nextIntro(cocos2d::Ref * r)
 }
 
 //以下函数是girl移动函数
-void GuideController::girlMove(std::string str, float girlPosY, cocos2d::Point destination)
+void GuideController::teemoMoving(std::string str, float girlPosY, cocos2d::Point destination)
 {
-	//用xml保存中文，记得xml文件要存在resource文件夹里面才行
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 	const char *str_1 = ((String*)dic->objectForKey(str))->_string.c_str();
-	function->setString(StringUtils::format(str_1));
+	m_pIntroDes->setString(StringUtils::format(str_1));
 
 	this->girlPosY = girlPosY;
 	vy_girl = 0.2;
@@ -187,17 +180,13 @@ void GuideController::girlMove(std::string str, float girlPosY, cocos2d::Point d
 	{
 		menuNext->removeFromParent();
 
-		auto item = Sprite::create("menu.png");
-		item->setScale(0.5);
-		next = MenuItemSprite::create(item, item, CC_CALLBACK_1(GuideController::nextIntro, this));  //这样能够使x轴翻转
-		auto menuNext1 = Menu::create(next, NULL);
-		menuNext1->setPosition(250 + 50 + 40, 400 - 30);
-		addChild(menuNext1, 5);
-
-		const char *str_1 = ((String*)dic->objectForKey("htp12"))->_string.c_str();
-		auto label = Label::create(str_1, "fonts/b.ttf", 20);
-		label->setPosition(250 + 37, 400 - 52);
-		addChild(label, 7);
+		auto close_normal = Sprite::create("closeBtn_1.png");
+		auto close_selected = Sprite::create("closeBtn_2.png");
+		next = MenuItemSprite::create(close_normal, close_selected,
+			CC_CALLBACK_1(GuideController::nextIntro, this));
+		auto closeMenu = Menu::create(next, NULL);
+		closeMenu->setPosition(vs.width / 2, vs.height / 2 - 50);
+		this->addChild(closeMenu, 1);
 
 	}
 }

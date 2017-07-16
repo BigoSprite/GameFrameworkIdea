@@ -48,23 +48,13 @@ void LoadingScene::__initLogo()
 {
 	Size size = Director::getInstance()->getVisibleSize();
 
-	m_pBackground = Sprite::create("city3.png");
+	m_pBackground = Sprite::create("loading_bg.png");
 	m_pBackground->setPosition(Vec2(size.width / 2, size.height / 2));
 	this->addChild(m_pBackground, -1);
 
-	m_pGirl1 = Sprite::create("22-h.png");
-	m_pGirl1->setPosition(size.width / 2 - 70, size.height / 2 + 40);
-	m_pGirl1->setScale(1.2);
-	this->addChild(m_pGirl1, 0);
-
-	m_pGirl2 = Sprite::create("33-h.png");
-	m_pGirl2->setPosition(size.width / 2 + 50, size.height / 2 + 40);
-	m_pGirl2->setScale(1.2);
-	this->addChild(m_pGirl2, 0);
-
 	m_pLogo = Label::createWithTTF("BigoSprite Idea", "fonts/ethnocentricrg.ttf", 25);
-	m_pLogo->setPosition(size.width / 2, size.height / 2 - 80);
-	m_pLogo->setColor(Color3B(153, 217, 234));
+	m_pLogo->setPosition(size.width / 2, size.height / 2);
+	m_pLogo->setColor(Color3B::WHITE);
 	m_pLogo->setOpacity(0);
 	this->addChild(m_pLogo, 0);
 

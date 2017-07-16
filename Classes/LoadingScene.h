@@ -14,8 +14,6 @@ public:
 
 private:
 	Sprite* m_pBackground;
-	Sprite* m_pGirl1;
-	Sprite* m_pGirl2;
 	Label* m_pLogo;
 
 	void __initLogo();

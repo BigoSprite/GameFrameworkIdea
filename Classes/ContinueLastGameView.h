@@ -19,13 +19,11 @@ public:
 
 private:
 	Sprite* m_pBackground;
-	Sprite* m_pTransBg;
+	Sprite* m_pTipBg;
 	Label* m_pDescreption1;
 	Label* m_pDescreption2;
-	MenuItemImage* m_pLeftMenuItem;
-	MenuItemImage* m_pRightMenuItem;
-	Label* m_pYesLabel;
-	Label* m_pNoLabel;
+	MenuItemSprite* m_pLeftMenuItem;
+	MenuItemSprite* m_pRightMenuItem;
 	Label* m_pLevelNum;
 };
 

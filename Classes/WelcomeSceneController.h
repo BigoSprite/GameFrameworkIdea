@@ -20,9 +20,9 @@ private:
 	float vy;  //y方向上移动速度
 	float vx;  //x方向上移动速度
 
-	Sprite* m_pBackgroundSprite1;
-	Sprite* m_pBackgroundSprite2;
-	Sprite* m_pCloudSprite;
+	Sprite* m_pBackgroundSprite;
+	//Sprite* m_pBackgroundSprite2;
+	//Sprite* m_pCloudSprite;
 
 	Label* m_pMenuTitle1;
 	Label* m_pMenuTitle2;
@@ -35,9 +35,6 @@ private:
 	void _gameEndCallback(cocos2d::Ref *pSender);
 	void _gameOptionCallback(cocos2d::Ref *pSender);
 
-
-	//背景下移函数，实现滚动效果
-	void _move(float dt);
 
 	void _particleEffect(Point point);
 };

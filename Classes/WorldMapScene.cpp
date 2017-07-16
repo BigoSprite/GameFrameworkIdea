@@ -14,6 +14,7 @@ bool WorldMapScene::init()
 	Layer::init();
 	Size size = Director::getInstance()->getVisibleSize();
 
+	
 	// ±³¾°
 	bg = Sprite::create("worldmap.jpg");
 	bg->setPosition(size.width / 2, size.height / 2);
