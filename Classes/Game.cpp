@@ -7,11 +7,9 @@
 #include "GamePauseController.h"
 #include "WelcomeSceneController.h"
 #include "FinalSceneController.h"
-#include "Global.h"
+#include "FailDialogPrefab.h"
 
 #include "SimpleAudioEngine.h"
-
-
 using namespace CocosDenshion;
 
 
@@ -167,51 +165,22 @@ bool Game::init()
 
 
 	//-------------------------------------每一关卡的目标和等级
-	//目标：字体
-	const char *str_action = ((String*)dic->objectForKey("target_score"))->_string.c_str();
-	auto label2 = Label::createWithTTF(str_action, "fonts/b.ttf", 18);
-	label2->setPosition(visibleSize.width / 2 - 40, 750);
-	label2->setOpacity(0);
-	ActionInterval * delay_la = DelayTime::create(3.8);   //每个sprite出现间隔0.4秒
-	auto fi_la = FadeIn::create(0.5);
-	auto seq_la = Sequence::create(delay_la, fi_la, nullptr);
-	label2->runAction(seq_la);
-	addChild(label2, 3);
 	//更新每一关的目标分数
 	target_score = getDataManager().getLevelTargetScore();
-	char target_temp[20];
-	sprintf(target_temp, "%d", target_score);
-	std::string target_str = target_temp;
-	targetScore_label = Label::createWithTTF(target_str, "fonts/watch.ttf", 25);
-	targetScore_label->setPosition(visibleSize.width / 2 + 10, 750);
+	targetScore_label = Label::createWithTTF(std::to_string(target_score), "fonts/watch.ttf", 25);
+	targetScore_label->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	targetScore_label->setPosition(visibleSize.width / 2, 765);
 	targetScore_label->setOpacity(0);
-	ActionInterval * delay_ts = DelayTime::create(4.2);   //每个sprite出现间隔0.4秒
-	auto fi_ts = FadeIn::create(0.5);
-	auto seq_ts = Sequence::create(delay_ts, fi_ts, nullptr);
+	auto seq_ts = Sequence::create(DelayTime::create(4.2f), FadeIn::create(0.5f), nullptr);
 	targetScore_label->runAction(seq_ts);
-	addChild(targetScore_label, 5);
+	this->addChild(targetScore_label, 5);
 
-	// 等级LV：-label
-	level_label = Label::createWithTTF("Lv:", "fonts/ethnocentricrg.ttf", 30);
-	level_label->setPosition(visibleSize.width / 2 - 180, visibleSize.height - 160);
-	addChild(level_label, 2);
-	level_label->setOpacity(0);
-	ActionInterval * delay_ll = DelayTime::create(5.4);   //每个sprite出现间隔0.4秒
-	auto fi_ll = FadeIn::create(0.5);
-	auto seq_ll = Sequence::create(delay_ll, fi_ll, nullptr);
-	level_label->runAction(seq_ll);
 	// 等级数目label-number
-	log("cur level: %d", curLevel);
-	char target_level[20];
-	sprintf(target_level, "%d", curLevel);
-	std::string target_str1 = target_level;
-	levelNum_label = Label::createWithTTF(target_str1, "fonts/ethnocentricrg.ttf", 40);
-	levelNum_label->setPosition(visibleSize.width / 2 - 120, visibleSize.height - 157);
+	levelNum_label = Label::createWithTTF(std::to_string(curLevel), "fonts/ethnocentricrg.ttf", 30);
+	levelNum_label->setPosition(visibleSize.width / 2 - 120, visibleSize.height - 150);
 	addChild(levelNum_label, 2);
 	levelNum_label->setOpacity(0);
-	ActionInterval * delay_lnl = DelayTime::create(5.6);   //每个sprite出现间隔0.4秒
-	auto fi_lnl = FadeIn::create(0.5);
-	auto seq_lnl = Sequence::create(delay_lnl, fi_lnl, nullptr);
+	auto seq_lnl = Sequence::create(DelayTime::create(5.6), FadeIn::create(0.5), nullptr);
 	levelNum_label->runAction(seq_lnl);
 	//-------------------------------------END 每一关卡的目标和等级
 
@@ -324,37 +293,26 @@ bool Game::init()
 	//-------------------------------------------END 2个功能性道具
 
 
-
-
-
-
-
-
 	//-------------------------------------------------END 背景图片,3个最上面的
 
 
 
 	//-------------------------当前分数的初始化及显示
 	//初始化分数
-	int tempICS = getDataManager().getCurrentScore();
-	getDataManager().setInitCurrentScore(tempICS);
+	int tmpCurScore = getDataManager().getCurrentScore();
+	getDataManager().setInitCurrentScore(tmpCurScore);
+
 	//当前分数的显示
     currentScore = getDataManager().getCurrentScore();
-	log("current score init: %d", currentScore);
-	char s[20];
-	sprintf(s, "%d", currentScore);
-	label_score = Label::createWithTTF(s, "fonts/HANGTHEDJ.ttf", 50);
-	label_score->setPosition(visibleSize.width / 2 - 15, visibleSize.height - 150);
-	addChild(label_score, 3);
-	auto st = ScaleBy::create(1.0, 1.1);
-	auto sq = Sequence::create(st, st->reverse(), nullptr);
-	auto rp = RepeatForever::create(sq);
-	label_score->runAction(rp);
+	label_score = Label::createWithTTF(std::to_string(currentScore), "fonts/HANGTHEDJ.ttf", 30);
+	label_score->setPosition(visibleSize.width / 2, visibleSize.height - 150);
+	this->addChild(label_score, 3);
+	auto st = ScaleBy::create(1.0f, 1.1f);
+	auto action_label_score = RepeatForever::create(Sequence::create(st, st->reverse(), nullptr));
+	label_score->runAction(action_label_score);
 	label_score->setOpacity(0);
-	ActionInterval * delay_ls = DelayTime::create(6);   //每个sprite出现间隔0.4秒
-	auto fi_ls = FadeIn::create(0.5);
-	auto seq_ls = Sequence::create(delay_ls, fi_ls, nullptr);
-	label_score->runAction(seq_ls);
+	auto action_label_score_2 = Sequence::create(DelayTime::create(6.0f), FadeIn::create(0.5), nullptr);
+	label_score->runAction(action_label_score_2);
 	//-------------------------END 当前分数的初始化及显示
 
 
@@ -1282,10 +1240,6 @@ void Game::changeIconType(Ref * r)
 			changeIconView->setPosition(Vec2(0, 0));
 			this->addChild(changeIconView, 20);
 			getDataManager().setIsChangeLayerAdded(true);
-			/*changeIconLayer * cil = changeIconLayer::create();
-			cil->setPosition(0, 0);
-			addChild(cil, 20);
-			getDataManager().setIsChangeLayerAdded(true);*/
 		}
 	}
 }
@@ -1314,17 +1268,13 @@ void Game::bombIconType(Ref * r)
 	else
 	{
 		if (getDataManager().getIsChangeLayerAdded() == false 
-			&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+			&& getDataManager().getIsBombLayerAdded() == false) 
 		{
-			log("ddddd");
-
-
 			tower1 = nullptr;
 			tower2 = nullptr;
 			missile1 = nullptr;
 			missile2 = nullptr;
 
-		/*	bombIconLayer * bil = bombIconLayer::create();*/
 			auto bil = BombIconPrefab::create();
 			bil->setPosition(Vec2(0, 0));
 			this->addChild(bil, 20);
@@ -1339,7 +1289,7 @@ void Game::bombIconType(Ref * r)
 void Game::returnToMenu(cocos2d::Ref* r)
 {
 	if (getDataManager().getIsChangeLayerAdded() == false
-		&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+		&& getDataManager().getIsBombLayerAdded() == false) 
 	{
 		//在这里得更新当前分数,方便暂停层使用
 		getDataManager().setCurrentScore(currentScore);
@@ -1354,7 +1304,7 @@ void Game::returnToMenu(cocos2d::Ref* r)
 void Game::restartGame(cocos2d::Ref* r)
 {
 	if (getDataManager().getIsChangeLayerAdded() == false 
-		&& getDataManager().getIsBombLayerAdded() == false) //如果已经添加了layer就不能再添加了
+		&& getDataManager().getIsBombLayerAdded() == false) 
 	{
 		Director::getInstance()->replaceScene(
 			TransitionCrossFade::create(1.0f, WelcomeSceneController::createScene()));
@@ -1415,7 +1365,6 @@ void Game::generatePoint()
 		p->removeControlPointAtIndex(randNum);
 	}
 
-	//log("%d %d %d %d %d", icon[0], icon[1], icon[2], icon[3], icon[4]);	
 
 	for (i = 0; i < 10; i++)
 		for (j = 0; j < 10; j++)
@@ -1474,7 +1423,7 @@ bool Game::isGameOver()
 	{
 		for (j = 0; j < 10; j++)
 		{
-			if (board[i][j] != 0)//别忘了这句话
+			if (board[i][j] != 0)
 			{
 				if (board[i - 1][j] == board[i][j] || board[i + 1][j] == board[i][j] || board[i][j - 1] == board[i][j] || board[i][j + 1] == board[i][j])
 				{
@@ -1961,7 +1910,6 @@ void Game::__destoryRemaining()
 }
 
 
-// TODO...
 void Game::gameStep(float dt)
 {
 
@@ -1969,8 +1917,6 @@ void Game::gameStep(float dt)
 	//检查飞行的分数是否飞到位，如果到位了就去除之
 	if (vec_label.size() != 0)
 	{
-		//log("size: %d",vec_label.size());
-		//不能用迭代器
 		int i;
 		for (i = 0; i < vec_label.size(); i++)
 		{
@@ -2037,9 +1983,8 @@ void Game::gameStep(float dt)
 	{
 		if (tower1 != nullptr)
 		{
-			log("tower remove");
 			tower1->removeFromParent();
-			tower1 = nullptr; ////////////////不能少，remove之后不是将其变为nullptr
+			tower1 = nullptr;
 
 		}
 		if (tower2 != nullptr)
@@ -2053,8 +1998,6 @@ void Game::gameStep(float dt)
 	if (isGameOver() && isGameOverHit == false && getDataManager().getIsChangeLayerAdded() == false 
 		&& getDataManager().getIsBombLayerAdded() == false)
 	{
-		log("game over");
-
 		//计算剩余icon数量
 		for (int i = 0; i < 10; i++)
 		{
@@ -2226,14 +2169,13 @@ void Game::gameStep(float dt)
 			}
 			else//添加失败层
 			{
-				//FailLayer *fl = FailLayer::create();
-				//fl->setPosition(0, 0);
-				//addChild(fl, 10);
+				auto failDialog = FailDialogPrefab::create();
+				this->addChild(failDialog, 10);
 
-				////播放音效
-				//SimpleAudioEngine::getInstance()->playEffect("lose.OGG");
-				////更新当前分数
-				//getDataManager().setCurrentScore(currentScore);
+				//播放音效
+				SimpleAudioEngine::getInstance()->playEffect("lose.OGG");
+				//更新当前分数
+				getDataManager().setCurrentScore(currentScore);
 			}
 
 		});//end call func

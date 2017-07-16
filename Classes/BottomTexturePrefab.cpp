@@ -18,13 +18,13 @@ bool BottomTexturePrefab::init()
 
 	///bg
 	m_pBg = Sprite::create("dialog.png");
-	m_pBg->setPosition(visibleSize.width / 2 + 10, -100);
-	m_pBg->setScaleY(1.4f);
+	m_pBg->setPosition(visibleSize.width / 2, - m_pBg->getContentSize().height/2 - 22 );
+	m_pBg->setScaleY(1.25f);
 	this->addChild(m_pBg, -1);
 
 	auto action_bg = Sequence::create(
 		DelayTime::create(2.7f), 
-		EaseOut::create(MoveTo::create(1, Vec2(visibleSize.width / 2 + 10, 90)), 7.0f), 
+		EaseOut::create(MoveTo::create(1, Vec2(visibleSize.width / 2, m_pBg->getContentSize().height / 2 + 22)), 7.0f),
 		nullptr);
 	m_pBg->runAction(action_bg);
 
@@ -42,7 +42,7 @@ bool BottomTexturePrefab::init()
 
 	///description
 	m_pDescription = Label::createWithTTF("", "fonts/b.ttf", 20);
-	m_pDescription->setPosition(visibleSize.width / 2 - 85, 40);
+	m_pDescription->setPosition(visibleSize.width / 2 - 90, 40);
 	m_pDescription->setAnchorPoint(Point(0, 0));
 	m_pDescription->setDimensions(300, 60);
 	this->addChild(m_pDescription, 0);

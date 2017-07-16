@@ -1,11 +1,7 @@
 #include "WelcomeSceneController.h"
-#include "HelloWorldScene.h"
 #include "GameSelectionController.h"
 
-#include "AchievementController.h"
-#include "WorldMapScene.h"
-
-WelcomeSceneController::WelcomeSceneController():vy(5),vx(2)
+WelcomeSceneController::WelcomeSceneController()
 {}
 
 WelcomeSceneController::~WelcomeSceneController()
@@ -66,9 +62,9 @@ bool WelcomeSceneController::init()
 	auto logo = Sprite::create("logo.png");
 	logo->setPosition(visibleSize.width/2, visibleSize.height / 2 + 280);
 	this->addChild(logo, 0);
-	auto st = ScaleBy::create(1.0f, 1.1f);
-	auto sq = Sequence::create(st, st->reverse(), NULL);
-	auto rp = RepeatForever::create(sq);
+	auto action = ScaleBy::create(1.0f, 1.1f);
+	auto rp = RepeatForever::create(
+		Sequence::create(action, action->reverse(), nullptr));
 	logo->runAction(rp);
 
 	//6个图标
@@ -107,10 +103,10 @@ bool WelcomeSceneController::init()
 	
 
 	// BigoSprite Idea
-	m_pTitle2 = Label::createWithTTF("BIGOSPRITE IDEA", "fonts/Arial.ttf", 18);
-	m_pTitle2->setPosition(visibleSize.width / 2 , visibleSize.height / 2 + 120);
-	m_pTitle2->setColor(Color3B(200, 170, 110));
-	this->addChild(m_pTitle2, 0);
+	m_pTitle = Label::createWithTTF("BIGOSPRITE IDEA", "fonts/Arial.ttf", 18);
+	m_pTitle->setPosition(visibleSize.width / 2 , visibleSize.height / 2 + 120);
+	m_pTitle->setColor(Color3B(200, 170, 110));
+	this->addChild(m_pTitle, 0);
 
 	// Button
 	// 菜单1——游戏开始
@@ -122,20 +118,20 @@ bool WelcomeSceneController::init()
 	enterGameMenu->setPosition(visibleSize.width / 2, visibleSize.height - 420);
 	this->addChild(enterGameMenu, 0);
 
-	// 菜单2——查看成就
-	auto seeAchievement_normal = Sprite::create("achievement_1.png");
-	auto seeAchievement_selected = Sprite::create("achievement_2.png");
+	// 菜单2——商店
+	auto seeAchievement_normal = Sprite::create("shopBtn_1.png");
+	auto seeAchievement_selected = Sprite::create("shopBtn_2.png");
 	auto item1 = MenuItemSprite::create(seeAchievement_normal, seeAchievement_selected,
-		CC_CALLBACK_1(WelcomeSceneController::_gameOptionCallback, this));
+		CC_CALLBACK_1(WelcomeSceneController::_enterShopCallback, this));
 	auto seeAchievementMenu = Menu::create(item1, NULL);
 	seeAchievementMenu->setPosition(visibleSize.width / 2, visibleSize.height - 520);
 	this->addChild(seeAchievementMenu, 0);
 
-	// 菜单3——查看地图
-	auto seeMap_normal = Sprite::create("worldmap_menu_1.png");
-	auto seeMap_selected = Sprite::create("worldmap_menu_2.png");
+	// 菜单3——退出
+	auto seeMap_normal = Sprite::create("quitBtn_1.png");
+	auto seeMap_selected = Sprite::create("quitBtn_2.png");
 	auto item2 = MenuItemSprite::create(seeMap_normal, seeMap_selected,
-		CC_CALLBACK_1(WelcomeSceneController::_gameEndCallback, this));
+		CC_CALLBACK_1(WelcomeSceneController::_quitGameCallback, this));
 	auto seeAcMapMenu = Menu::create(item2, NULL);
 	seeAcMapMenu->setPosition(visibleSize.width / 2, visibleSize.height - 620);
 	this->addChild(seeAcMapMenu, 0);
@@ -143,53 +139,21 @@ bool WelcomeSceneController::init()
 	return true;
 }
 
-// 转到游戏选择场景
+
 void WelcomeSceneController::_gameStartCallback(cocos2d::Ref *pSender)
 {
-	log("game start...");
-
 	Size visibleSize = Director::getInstance()->getVisibleSize();
-	_particleEffect(Point(visibleSize.width / 2, visibleSize.height - 420));
 	Director::getInstance()->replaceScene(
 		TransitionFade::create(2, GameSelectionController::createScene()));
 }
 
-// 转到世界地图场景
-void WelcomeSceneController::_gameEndCallback(cocos2d::Ref *pSender)
+
+void WelcomeSceneController::_enterShopCallback(Ref *pRef)
 {
-	log("game end...");
-
-	Director::getInstance()->replaceScene(
-		TransitionFade::create(0.5f, WorldMapScene::createScene()));
-}
-
-// 转到Achievement场景
-void WelcomeSceneController::_gameOptionCallback(cocos2d::Ref *pSender)
-{
-	log("game option...");
-
-	Director::getInstance()->replaceScene(
-		TransitionFade::create(0.5f, AchievementController::createScene()));
 }
 
 
-void WelcomeSceneController::_particleEffect(Point point)
+void WelcomeSceneController::_quitGameCallback(Ref *pRef)
 {
-	auto effect = ParticleExplosion::create();
-	effect->setTexture(Director::getInstance()->getTextureCache()->addImage("menu.png"));
-	effect->setTotalParticles(10);
-
-
-	//让其为图片本身的颜色
-	effect->setStartColor(Color4F(255, 255, 255, 255));
-	effect->setEndColor(Color4F(255, 255, 255, 0));
-
-	effect->setStartSize(50.0f);
-
-	effect->setLife(2.6f);
-	effect->setSpeed(200);
-	effect->setSpeedVar(10);
-	effect->setPosition(point);
-
-	this->addChild(effect, 5);
+	Director::getInstance()->end();
 }

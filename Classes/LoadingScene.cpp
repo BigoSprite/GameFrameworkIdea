@@ -2,6 +2,9 @@
 #include "WelcomeSceneController.h"
 #include "SimpleAudioEngine.h"
 
+
+#include "FailDialogPrefab.h"
+
 using namespace CocosDenshion;
 
 LoadingScene::LoadingScene()
@@ -35,7 +38,8 @@ bool LoadingScene::init()
 	auto seq = Sequence::create(
 		DelayTime::create(1.5f), 
 		CallFunc::create([=]() {
-			Director::getInstance()->replaceScene(WelcomeSceneController::createScene());
+		Director::getInstance()->replaceScene(
+				WelcomeSceneController::createScene());
 	    }), 
 		nullptr
 	);
