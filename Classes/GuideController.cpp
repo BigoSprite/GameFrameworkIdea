@@ -1,6 +1,6 @@
 #include "GuideController.h"
 
-GuideController::GuideController():vy_girl(0.5),progress(0)
+GuideController::GuideController():vy_teemo(0.5),progress(0)
 {}
 
 GuideController::~GuideController()
@@ -26,15 +26,14 @@ bool GuideController::init()
 	this->addChild(dialog, 0);
 
 
-	//1 秋晓萌飞入动画：从左边外面进场
-    girl = Sprite::create("teemo.png");
-	girl->setScale(0.20);
-	girl->setPosition(-100, vs.height / 2);
-	this->addChild(girl, 1);
-	// 动画
+    m_pTeemo = Sprite::create("teemo.png");
+	m_pTeemo->setScale(0.20f);
+	m_pTeemo->setPosition(-100, vs.height / 2);
+	this->addChild(m_pTeemo, 1);
 	auto mt_girl_1 = MoveTo::create(1, Vec2(100, vs.height / 2));
 	EaseOut * eo_mt_girl_1 = EaseOut::create(mt_girl_1, 7.0);
-	girl->runAction(eo_mt_girl_1);
+	m_pTeemo->runAction(eo_mt_girl_1);
+	
 	// 文字
 	const char *str_1 = ((String*)dic->objectForKey("guide_intro_1"))->_string.c_str();
 	m_pIntroDes = Label::createWithTTF(str_1, "fonts/b.ttf", 18);
@@ -76,14 +75,12 @@ bool GuideController::init()
 	设置吞没函数，为true，而且ontouchbegin函数返要是true*/
 	listener->setSwallowTouches(true);
 	listener->onTouchBegan = [=](Touch *t, Event *e) {
-		//log("touched...");
 		return true;
 
 	};
 	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
 
-	//调用girl 移动函数
-	girlPosY = vs.height / 2;
+	teemoPosY = vs.height / 2;
 	this->schedule(SEL_SCHEDULE(&GuideController::move), 0.02f);
 
 
@@ -116,10 +113,10 @@ void GuideController::nextIntro(Ref * r)
 		teemoMoving("guide_intro_4", 730, Point(350, 730));
 		break;
 	case 4:
-		teemoMoving("guide_intro_5", 730, Point(400, 730));
+		teemoMoving("guide_intro_5", 730, Point(420, 730));
 		break;
 	case 5:
-		teemoMoving("guide_intro_6", 650, Point(45, 650));
+		teemoMoving("guide_intro_6", 650, Point(102, 650));
 		break;
 	case 6:
 		teemoMoving("guide_intro_7", 650, Point(250, 650));
@@ -142,15 +139,15 @@ void GuideController::nextIntro(Ref * r)
 	}
 }
 
-//以下函数是girl移动函数
+
 void GuideController::teemoMoving(std::string str, float girlPosY, cocos2d::Point destination)
 {
 	Dictionary* dic = Dictionary::createWithContentsOfFile("chinese.xml");
 	const char *str_1 = ((String*)dic->objectForKey(str))->_string.c_str();
 	m_pIntroDes->setString(StringUtils::format(str_1));
 
-	this->girlPosY = girlPosY;
-	vy_girl = 0.2;
+	this->teemoPosY = girlPosY;
+	vy_teemo = 0.2;
 	this->unschedule(SEL_SCHEDULE(&GuideController::move));
 	ActionInterval * delay = DelayTime::create(0.55);
 	auto schedule = CallFunc::create([=]() {
@@ -173,7 +170,7 @@ void GuideController::teemoMoving(std::string str, float girlPosY, cocos2d::Poin
 		st = ScaleTo::create(0.5, 0.1);
 
 	auto sp = Spawn::create(mt, st, NULL);
-	girl->runAction(sp);
+	m_pTeemo->runAction(sp);
 
 
 	if (progress == 10)
@@ -196,11 +193,10 @@ void GuideController::deleteLayer()
 	this->removeFromParent();
 }
 
-//萌妹上下移动函数
 void GuideController::move(float dt)
 {
 	Size vs = Director::getInstance()->getVisibleSize();
-	//萌妹沿着y轴上下移动
+
 	int delta;
 	if (progress == 0)
 	{
@@ -212,18 +208,14 @@ void GuideController::move(float dt)
 
 	}
 
-
-	float nextGirlY = girl->getPositionY() - vy_girl;
-	//log("nextGirlY: %f", nextGirlY);
-	//log("girlPosY: %f", girlPosY);
-	girl->setPositionY(nextGirlY);
-	if (nextGirlY >= girlPosY + delta)
+	float nextGirlY = m_pTeemo->getPositionY() - vy_teemo;
+	m_pTeemo->setPositionY(nextGirlY);
+	if (nextGirlY >= teemoPosY + delta)
 	{
-		vy_girl = -vy_girl;
+		vy_teemo= -vy_teemo;
 	}
-	if (nextGirlY <= girlPosY - delta)
+	if (nextGirlY <= teemoPosY - delta)
 	{
-		//log("vy_girl: %f",vy_girl);
-		vy_girl = -vy_girl;
+		vy_teemo = -vy_teemo;
 	}
 }

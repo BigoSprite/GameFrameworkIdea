@@ -44,6 +44,18 @@ bool ContinueLastGameController::init()
 		CC_CALLBACK_1(ContinueLastGameController::__onStartNewPlayMsgReceived, this));
 	dispatcher->addEventListenerWithSceneGraphPriority(startNewPlayListener, this);
 
+
+
+	// 屏蔽该场景下的触摸事件
+	auto listener = EventListenerTouchOneByOne::create();
+	listener->setSwallowTouches(true);
+	listener->onTouchBegan = [=](Touch *t, Event *e) {
+		return true;
+	};
+	Director::getInstance()->getEventDispatcher()->addEventListenerWithSceneGraphPriority(listener, this);
+
+	return true;
+
 	return true;
 }
 

@@ -57,7 +57,7 @@ bool WelcomeDialogPrefab::initWithLevel(const int& level)
 	this->addChild(m_pServerIcon, 0);
 	auto action_server = Sequence::create(
 		DelayTime::create(2.0f), 
-		MoveTo::create(0.5f, Vec2(visibleSize.width/2 - m_pServerIcon->getContentSize().width/2 - 5, visibleSize.height / 2)), nullptr);
+		MoveTo::create(0.5f, Vec2(visibleSize.width/2 - m_pServerIcon->getContentSize().width - 20, visibleSize.height / 2)), nullptr);
 	m_pServerIcon->runAction(action_server);
 
 
@@ -66,12 +66,12 @@ bool WelcomeDialogPrefab::initWithLevel(const int& level)
 	m_pServerName = Label::createWithTTF(str_city, "fonts/b.ttf", 30);
 	m_pServerName->setColor(Color3B::ORANGE);
 	m_pServerName->setRotationSkewX(15);
-	m_pServerName->setPosition(650, visibleSize.width / 2 + 125);
+	m_pServerName->setPosition(650, visibleSize.height / 2);
 	this->addChild(m_pServerName, 0);
 	// 大区名字动画
 	auto action_cityName = Sequence::create(
 		DelayTime::create(2.0f),
-		MoveTo::create(0.6, Vec2(300, visibleSize.width / 2 + 125)),
+		MoveTo::create(0.6, Vec2(visibleSize.width / 2 + m_pServerName->getContentSize().width/2, visibleSize.height/2)),
 		DelayTime::create(2.0),
 		CallFunc::create([=]() {
 		m_pServerName->removeAllChildrenWithCleanup(true);
@@ -99,7 +99,7 @@ bool WelcomeDialogPrefab::initWithLevel(const int& level)
 
 	/// 开始
 	std::string startString = ((String*)dic->objectForKey("start"))->_string.c_str();
-	m_pStartLabel = Label::createWithTTF(startString, "fonts/zzgfh.otf", 80);
+	m_pStartLabel = Label::createWithTTF(startString, "fonts/zzgfh.otf", 60);
 	m_pStartLabel->setScale(2.5f);
 	m_pStartLabel->setPosition(visibleSize.width / 2, visibleSize.height / 2);
 	m_pStartLabel->setOpacity(0);

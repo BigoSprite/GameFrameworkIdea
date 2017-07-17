@@ -39,7 +39,7 @@ bool LoadingScene::init()
 		DelayTime::create(1.5f), 
 		CallFunc::create([=]() {
 		Director::getInstance()->replaceScene(
-				WelcomeSceneController::createScene());
+			TransitionFade::create(1.0f, WelcomeSceneController::createScene()));
 	    }), 
 		nullptr
 	);
@@ -62,7 +62,7 @@ void LoadingScene::__initLogo()
 	m_pLogo->setOpacity(0);
 	this->addChild(m_pLogo, 0);
 
-	auto fi = FadeIn::create(1.5);
+	auto fi = FadeIn::create(1.5f);
 	m_pLogo->runAction(fi);
 }
 

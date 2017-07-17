@@ -2,7 +2,6 @@
 #include "WelcomeSceneController.h"
 #include "HelloWorldScene.h"
 #include "GuideController.h"
-#include "WorldMapScene.h"
 #include "ContinueLastGameController.h"
 #include "Game.h"
 
@@ -78,8 +77,6 @@ bool GameSelectionController::init()
 
 void GameSelectionController::gameStart1(Ref * r)
 {
-	log("game start 1");
-
 	// 让原来的文字不可见todo
 
 	Size vs = Director::getInstance()->getVisibleSize();
@@ -91,8 +88,11 @@ void GameSelectionController::gameStart1(Ref * r)
 	if (globalLevelNum != 0)//弹出是否继续游戏的提示框
 	{
 		auto icl = ContinueLastGameController::create();
+		icl->setOpacity(0);
 		icl->setPosition(0, 0);
 		this->addChild(icl, 10);
+
+		icl->runAction(FadeIn::create(1.5f));
 	}
 	else //否则直接开始游戏
 	{

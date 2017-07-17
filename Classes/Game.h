@@ -154,9 +154,6 @@ private:
 
 
 
-	MenuItemImage * btm;//返回主菜单
-	MenuItemImage * res;//重新开始
-
     Label * label_score;//显示分数的控件
 	int currentScore; // 游戏当前分数
 
@@ -174,27 +171,16 @@ private:
 	double statistic_Time;
 
 	//数据统计的label们
-	Label * statisticTitle;
 	Label * title1;
-	Sprite * pointer1;
 	Label * title2;
-	Sprite * pointer2;
 	Label * title3;
-	Sprite * pointer3;
 	Label * title4;
-	Sprite * pointer4;
 	Label * title5;
-	Sprite * pointer5;
 	Label * title6;
-	Sprite * pointer6;
 	Label * title7;
-	Sprite * pointer7;
 	Label * title8;
-	Sprite * pointer8;
 	Label * title9;
-	Sprite * pointer9;
 	Label * title10;
-	Sprite * pointer10;
 
 	Label* leftIcon_label;
 	Label* leftBonus_label;

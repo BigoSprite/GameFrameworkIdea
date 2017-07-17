@@ -21,7 +21,7 @@ private:
 
 
 	void __restartGameCallback(Ref* r);
-	void __back2WelcomeSceneCallback(Ref* r);
+	void __quitGameCallback(Ref* r);
 };
 
 #endif // !_FIAL_DIALOG_PREFAB_H_

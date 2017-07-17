@@ -1,5 +1,4 @@
 #include "Game.h"
-#include "GirlTwo.h"
 #include "DataManager.h"
 #include "GuideController.h"
 #include "ChangeIconPrefab.h"
@@ -202,7 +201,7 @@ bool Game::init()
 	this->addChild(m_pBottomTexturePrefab, 2);
 
 
-	//-------------------------------------------------背景图片,3个最上面的
+	//-------------------------------------------------背景图片,上面的
 
 	auto top_bar_bg = Sprite::create("top_bar_bg.png");
 	top_bar_bg->setAnchorPoint(Vec2::ANCHOR_MIDDLE_TOP);
@@ -215,8 +214,34 @@ bool Game::init()
 	top_bar_bg->runAction(action_top_bar_bg);
 
 
-	//返回主菜单和重新开始按钮
-	btm = MenuItemImage::create("backToMenu.png", "backToMenu.png", 
+	// 暂停和返回主菜单
+	// 暂停
+	auto pauseMenu_normal = Sprite::create("pauseBtn_1.png");
+	auto pauseMenu_Selected = Sprite::create("pauseBtn_2.png");
+	auto pauseItem = MenuItemSprite::create(pauseMenu_normal, pauseMenu_Selected, 
+		CC_CALLBACK_1(Game::returnToMenu, this));
+	pauseItem->setScale(0.3f);
+	auto pauseMenu = Menu::create(pauseItem, nullptr);
+	pauseMenu->setPosition(62, visibleSize.height - 25);
+	this->addChild(pauseMenu, 3);
+
+	pauseMenu->setOpacity(0);
+	pauseMenu->runAction(Sequence::create(DelayTime::create(3.0f), FadeIn::create(0.5f), nullptr));
+	
+	// 返回主菜单
+	auto back2MainMenu_normal = Sprite::create("mainMenu_1.png");
+	auto back2MainMenu_Selected = Sprite::create("mainMenu_2.png");
+	auto backItem = MenuItemSprite::create(back2MainMenu_normal, back2MainMenu_Selected,
+		CC_CALLBACK_1(Game::restartGame, this));
+	backItem->setScale(0.3f);
+	auto backMenu = Menu::create(backItem, nullptr);
+	backMenu->setPosition(128, visibleSize.height - 25);
+	this->addChild(backMenu, 3);
+
+	backMenu->setOpacity(0);
+	backMenu->runAction(Sequence::create(DelayTime::create(3.4f), FadeIn::create(0.5f), nullptr));
+
+	/*btm = MenuItemImage::create("backToMenu.png", "backToMenu.png", 
 		CC_CALLBACK_1(Game::returnToMenu, this));
 	btm->setAnchorPoint(Point(0, 0));
 	btm->setScale(0.45);
@@ -225,18 +250,18 @@ bool Game::init()
 	btm_menu->setOpacity(0);
 	auto action_1 = Sequence::create(DelayTime::create(3.0f), FadeIn::create(0.5f), nullptr);
 	btm_menu->runAction(action_1);
-	this->addChild(btm_menu, 3);
-	//重新开始按钮
-	res = MenuItemImage::create("restart.png", "restart.png", 
-		CC_CALLBACK_1(Game::restartGame, this));
-	res->setAnchorPoint(Point(0, 0));
-	res->setScale(0.45);
-	auto res_menu = Menu::create(res, nullptr);
-	res_menu->setPosition(visibleSize.width / 2 - 160, visibleSize.height - 60);
-	res_menu->setOpacity(0);
-	auto action_2 = Sequence::create(DelayTime::create(3.4f), FadeIn::create(0.5f), nullptr);
-	res_menu->runAction(action_2);
-	this->addChild(res_menu, 3);
+	this->addChild(btm_menu, 3);*/
+	////重新开始按钮
+	//auto res = MenuItemImage::create("restart.png", "restart.png", 
+	//	CC_CALLBACK_1(Game::restartGame, this));
+	//res->setAnchorPoint(Point(0, 0));
+	//res->setScale(0.45);
+	//auto res_menu = Menu::create(res, nullptr);
+	//res_menu->setPosition(visibleSize.width / 2 - 160, visibleSize.height - 60);
+	//res_menu->setOpacity(0);
+	//auto action_2 = Sequence::create(DelayTime::create(3.4f), FadeIn::create(0.5f), nullptr);
+	//res_menu->runAction(action_2);
+	//this->addChild(res_menu, 3);
 
 
 
@@ -317,12 +342,11 @@ bool Game::init()
 
 
 
-	//---------------------------------------游戏结束对话框
+	//---------------------------------------数据统计对话框
 	// 背景
-	gameEnd = Sprite::create("gameEnd.png");
-	gameEnd->setPosition(visibleSize.width / 2, visibleSize.height - 450);
-	gameEnd->setScale(0.85);
-	addChild(gameEnd, 5);
+	gameEnd = Sprite::create("level_data_bg.png");
+	gameEnd->setPosition(visibleSize.width / 2, visibleSize.height/2);
+	this->addChild(gameEnd, 5);
 	gameEnd->setVisible(false);
 
 
@@ -340,239 +364,137 @@ bool Game::init()
 	legendary_kill = 0;
 
 	//////////////////////////////////////////数据统计
-	// 数据统计的标题title
-	const char *str_1 = ((String*)dic->objectForKey("statistic"))->_string.c_str();
-	statisticTitle = Label::createWithTTF(str_1, "fonts/b.ttf", 30);
-	statisticTitle->setPosition(visibleSize.width / 2, visibleSize.height - 320);
-	statisticTitle->setVisible(false);
-	addChild(statisticTitle, 6);
 	//剩余图标
-	pointer1 = Sprite::create("pointer.png");
-	pointer1->setPosition(visibleSize.width / 2 - 190, visibleSize.height - 380);
-	pointer1->setRotation(-90);
-	pointer1->setVisible(false);
-	addChild(pointer1, 6);
-	// label
 	const char *str_2 = ((String*)dic->objectForKey("lefticon"))->_string.c_str();
-	title1 = Label::createWithTTF(str_2, "fonts/b.ttf", 20);
-	title1->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 380);
+	title1 = Label::createWithTTF(str_2, "fonts/b.ttf", 15);
+	title1->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 330);
 	title1->setVisible(false);
 	addChild(title1, 6);
-	// label：number
-	char sLabel1[20];
-	sprintf(sLabel1, "%d", statistic_LeftIcon);
-	leftIcon_label = Label::createWithTTF(sLabel1, "fonts/watch.ttf", 25);
-	leftIcon_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 380);
+
+	leftIcon_label = Label::createWithTTF(std::to_string(statistic_LeftIcon), "fonts/watch.ttf", 16);
+	leftIcon_label->setPosition(visibleSize.width / 2 - 50, visibleSize.height - 330);
 	leftIcon_label->setVisible(false);
 	addChild(leftIcon_label, 6);
+
 	//剩余奖励
-	pointer2 = Sprite::create("pointer.png");
-	pointer2->setPosition(visibleSize.width / 2 - 190, visibleSize.height - 420);
-	pointer2->setRotation(-90);
-	pointer2->setVisible(false);
-	addChild(pointer2, 6);
-	//label
 	const char *str_3 = ((String*)dic->objectForKey("leftbonus"))->_string.c_str();
-	title2 = Label::createWithTTF(str_3, "fonts/b.ttf", 20);
-	title2->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 420);
+	title2 = Label::createWithTTF(str_3, "fonts/b.ttf", 15);
+	title2->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 361);
 	title2->setVisible(false);
-	addChild(title2, 6);
+	this->addChild(title2, 6);
 	//label-number
-	char sLabel2[20];
-	sprintf(sLabel2, "%d", statistic_LeftBonus);
-	leftBonus_label = Label::createWithTTF(sLabel2, "fonts/watch.ttf", 25);
-	leftBonus_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 420);
+	leftBonus_label = Label::createWithTTF(std::to_string(statistic_LeftBonus), "fonts/watch.ttf", 16);
+	leftBonus_label->setPosition(visibleSize.width / 2 - 50, visibleSize.height - 361);
 	leftBonus_label->setVisible(false);
 	addChild(leftBonus_label, 6);
+
 	//单个最多
-	pointer3 = Sprite::create("pointer.png");
-	pointer3->setPosition(visibleSize.width / 2 - 190, visibleSize.height - 460);
-	pointer3->setRotation(-90);
-	pointer3->setVisible(false);
-	addChild(pointer3, 6);
-	// label
 	const char *str_4 = ((String*)dic->objectForKey("singlerecord"))->_string.c_str();
-	title3 = Label::createWithTTF(str_4, "fonts/b.ttf", 20);
-	title3->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 460);
+	title3 = Label::createWithTTF(str_4, "fonts/b.ttf", 15);
+	title3->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 392);
 	title3->setVisible(false);
 	addChild(title3, 6);
 	// label-number
-	char sLabel4[20];
-	sprintf(sLabel4, "%d", statistic_SingleMost);
-	singleMost_label = Label::createWithTTF(sLabel4, "fonts/watch.ttf", 25);
-	singleMost_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 460);
+	singleMost_label = Label::createWithTTF(std::to_string(statistic_SingleMost) , "fonts/watch.ttf", 16);
+	singleMost_label->setPosition(visibleSize.width / 2 - 50, visibleSize.height - 392);
 	singleMost_label->setVisible(false);
 	addChild(singleMost_label, 6);
+
 	//消去最多
-	pointer4 = Sprite::create("pointer.png");
-	pointer4->setPosition(visibleSize.width / 2 - 190, visibleSize.height - 500);
-	pointer4->setRotation(-90);
-	pointer4->setVisible(false);
-	addChild(pointer4, 6);
-	// label
 	const char *str_5 = ((String*)dic->objectForKey("mosterase"))->_string.c_str();
-	title4 = Label::createWithTTF(str_5, "fonts/b.ttf", 20);
-	title4->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 500);
+	title4 = Label::createWithTTF(str_5, "fonts/b.ttf", 15);
+	title4->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 420);
 	title4->setVisible(false);
 	addChild(title4, 6);
-	// label-number
-	char sLabel5[20];
-	sprintf(sLabel5, "%d", statistic_MostIcon);
-	mostIcon_label = Label::createWithTTF(sLabel5, "fonts/watch.ttf", 25);
-	mostIcon_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 500);
+
+	mostIcon_label = Label::createWithTTF(std::to_string(statistic_MostIcon), "fonts/watch.ttf", 16);
+	mostIcon_label->setPosition(visibleSize.width / 2 - 50, visibleSize.height - 420);
 	mostIcon_label->setVisible(false);
 	addChild(mostIcon_label, 6);
 
 	//时间
-	pointer5 = Sprite::create("pointer.png");
-	pointer5->setPosition(visibleSize.width / 2 - 190, visibleSize.height - 540);
-	pointer5->setRotation(-90);
-	pointer5->setVisible(false);
-	addChild(pointer5, 6);
-	// label
 	const char *str_6 = ((String*)dic->objectForKey("time"))->_string.c_str();
-	title5 = Label::createWithTTF(str_6, "fonts/b.ttf", 20);
-	title5->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 540);
+	title5 = Label::createWithTTF(str_6, "fonts/b.ttf", 15);
+	title5->setPosition(visibleSize.width / 2 - 130, visibleSize.height - 446);
 	title5->setVisible(false);
 	addChild(title5, 6);
-	// label-number
-	char sLabel6[20];
-	sprintf(sLabel6, "%f", statistic_Time);
-	timer_label = Label::createWithTTF(sLabel6, "fonts/watch.ttf", 25);
-	timer_label->setPosition(visibleSize.width / 2 - 30, visibleSize.height - 540);
+
+	timer_label = Label::createWithTTF(std::to_string(statistic_Time), "fonts/watch.ttf", 16);
+	timer_label->setPosition(visibleSize.width / 2 - 50, visibleSize.height - 446);
 	timer_label->setVisible(false);
 	addChild(timer_label, 6);
-	//////////////////////////////////////////END 数据统计
 
 
-
-	//////////////////////////////////显示4~8杀的label
 	//4杀
-	//icon
-	pointer6 = Sprite::create("pointer.png");
-	pointer6->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 380);
-	pointer6->setRotation(-90);
-	pointer6->setVisible(false);
-	addChild(pointer6, 6);
-	// label
 	const char *str_7 = ((String*)dic->objectForKey("fourkill"))->_string.c_str();
-	title6 = Label::createWithTTF(str_7, "fonts/b.ttf", 20);
-	title6->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 380);
+	title6 = Label::createWithTTF(str_7, "fonts/b.ttf", 15);
+	title6->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 330);
 	title6->setVisible(false);
 	addChild(title6, 6);
-	//label-number
-	char sLabel7[20];
-	sprintf(sLabel7, "%d", four_kill);
-	fourKill_label = Label::createWithTTF(sLabel7, "fonts/watch.ttf", 25);
-	fourKill_label->setPosition(visibleSize.width / 2 + 150, visibleSize.height - 380);
+
+	fourKill_label = Label::createWithTTF(std::to_string(four_kill), "fonts/watch.ttf", 15);
+	fourKill_label->setPosition(visibleSize.width / 2 + 140, visibleSize.height - 330);
 	fourKill_label->setVisible(false);
 	addChild(fourKill_label, 6);
+
 	//5杀
-	//icon
-	pointer7 = Sprite::create("pointer.png");
-	pointer7->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 420);
-	pointer7->setRotation(-90);
-	pointer7->setVisible(false);
-	addChild(pointer7, 6);
-	//label
 	const char *str_8 = ((String*)dic->objectForKey("fivekill"))->_string.c_str();
-	title7 = Label::createWithTTF(str_8, "fonts/b.ttf", 20);
-	title7->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 420);
+	title7 = Label::createWithTTF(str_8, "fonts/b.ttf", 15);
+	title7->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 361);
 	title7->setVisible(false);
 	addChild(title7, 6);
-	//label-number
-	char sLabel8[20];
-	sprintf(sLabel8, "%d", five_kill);
-	fiveKill_label = Label::createWithTTF(sLabel8, "fonts/watch.ttf", 25);
-	fiveKill_label->setPosition(visibleSize.width / 2 + 150, visibleSize.height - 420);
+
+	fiveKill_label = Label::createWithTTF(std::to_string(five_kill), "fonts/watch.ttf", 16);
+	fiveKill_label->setPosition(visibleSize.width / 2 + 140, visibleSize.height - 361);
 	fiveKill_label->setVisible(false);
 	addChild(fiveKill_label, 6);
-	//6杀
-	//icon
-	pointer8 = Sprite::create("pointer.png");
-	pointer8->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 460);
-	pointer8->setRotation(-90);
-	pointer8->setVisible(false);
-	addChild(pointer8, 6);
 
+	//6杀
 	const char *str_9 = ((String*)dic->objectForKey("sixkill"))->_string.c_str();
-	title8 = Label::createWithTTF(str_9, "fonts/b.ttf", 20);
-	title8->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 460);
+	title8 = Label::createWithTTF(str_9, "fonts/b.ttf", 15);
+	title8->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 392);
 	title8->setVisible(false);
 	addChild(title8, 6);
 
-	char sLabel9[20];
-	sprintf(sLabel9, "%d", six_kill);
-	sixKill_label = Label::createWithTTF(sLabel8, "fonts/watch.ttf", 25);
-	sixKill_label->setPosition(visibleSize.width / 2 + 150, visibleSize.height - 460);
+	sixKill_label = Label::createWithTTF(std::to_string(six_kill), "fonts/watch.ttf", 16);
+	sixKill_label->setPosition(visibleSize.width / 2 + 140, visibleSize.height - 392);
 	sixKill_label->setVisible(false);
 	addChild(sixKill_label, 6);
 
 	//7杀
-	pointer9 = Sprite::create("pointer.png");
-	pointer9->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 500);
-	pointer9->setRotation(-90);
-	pointer9->setVisible(false);
-	addChild(pointer9, 6);
-
 	const char *str_10 = ((String*)dic->objectForKey("sevenkill"))->_string.c_str();
-	title9 = Label::createWithTTF(str_10, "fonts/b.ttf", 20);
-	title9->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 500);
+	title9 = Label::createWithTTF(str_10, "fonts/b.ttf", 15);
+	title9->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 420);
 	title9->setVisible(false);
 	addChild(title9, 6);
 
-	char sLabel10[20];
-	sprintf(sLabel10, "%d", seven_kill);
-	sevenKill_label = Label::createWithTTF(sLabel10, "fonts/watch.ttf", 25);
-	sevenKill_label->setPosition(visibleSize.width / 2 + 150, visibleSize.height - 500);
+	sevenKill_label = Label::createWithTTF(std::to_string(seven_kill), "fonts/watch.ttf", 16);
+	sevenKill_label->setPosition(visibleSize.width / 2 + 140, visibleSize.height - 420);
 	sevenKill_label->setVisible(false);
 	addChild(sevenKill_label, 6);
 
 	//超神
-	pointer10 = Sprite::create("pointer.png");
-	pointer10->setPosition(visibleSize.width / 2 + 30, visibleSize.height - 540);
-	pointer10->setRotation(-90);
-	pointer10->setVisible(false);
-	addChild(pointer10, 6);
-
 	const char *str_11 = ((String*)dic->objectForKey("legendary"))->_string.c_str();
-	title10 = Label::createWithTTF(str_11, "fonts/b.ttf", 20);
-	title10->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 540);
+	title10 = Label::createWithTTF(str_11, "fonts/b.ttf", 15);
+	title10->setPosition(visibleSize.width / 2 + 70, visibleSize.height - 446);
 	title10->setVisible(false);
 	addChild(title10, 6);
 
-	char sLabel11[20];
-	sprintf(sLabel11, "%d", legendary_kill);
-	legendaryKill_label = Label::createWithTTF(sLabel11, "fonts/watch.ttf", 25);
-	legendaryKill_label->setPosition(visibleSize.width / 2 + 150, visibleSize.height - 540);
+	legendaryKill_label = Label::createWithTTF(std::to_string(legendary_kill), "fonts/watch.ttf", 16);
+	legendaryKill_label->setPosition(visibleSize.width / 2 + 140, visibleSize.height - 446);
 	legendaryKill_label->setVisible(false);
 	addChild(legendaryKill_label, 6);
-	//////////////////////////////////END 显示4~8杀的label
 
-
-
-
-	/////////////////////////剩余奖励icon
-	// icon
-	leftBonusBox = Sprite::create("leftBonus.png");  //大小写问题，vs忽略大小写，adnroid不忽略，卧槽
-	leftBonusBox->setPosition(visibleSize.width / 2, visibleSize.height / 2);
-	leftBonusBox->setScale(1);
-	leftBonusBox->setOpacity(0);
-	addChild(leftBonusBox, 6);
 	//////////////// 下一关 menuitem
-	nextLevel = MenuItemImage::create("menu.png", "menu.png", 
+	auto nextLevel_normal = Sprite::create("nextLevelBtn_1.png");
+	auto nextLevel_selected= Sprite::create("nextLevelBtn_2.png");
+	auto nextLevel_item = MenuItemSprite::create(nextLevel_normal, nextLevel_selected,
 		CC_CALLBACK_1(Game::goToNextLevel, this));
-	nextLevel->setScale(0.5);
-	menuNextLevel = Menu::create(nextLevel, nullptr);
-	menuNextLevel->setPosition(visibleSize.width / 2, visibleSize.height - 600);
+	menuNextLevel = Menu::create(nextLevel_item, nullptr);
+	menuNextLevel->setPosition(visibleSize.width / 2, gameEnd->getPosition().y - gameEnd->getContentSize().height/2 + 30);
 	menuNextLevel->setVisible(false);
-	addChild(menuNextLevel, 6);
-	// menuitem-label
-	const char *str_nextLevel = ((String*)dic->objectForKey("nextLevel"))->_string.c_str();
-	nextLevelLabel = Label::createWithTTF(str_nextLevel, "fonts/b.ttf", 20);
-	nextLevelLabel->setPosition(visibleSize.width / 2 - 5, visibleSize.height - 600);
-	nextLevelLabel->setVisible(false);
-	addChild(nextLevelLabel, 7);
+	this->addChild(menuNextLevel, 6);
+
 
 
 
@@ -1947,10 +1869,10 @@ void Game::gameStep(float dt)
 			}
 			Size vs = Director::getInstance()->getVisibleSize();
 
-			clear = Sprite::create("clear.png");
+			clear = Sprite::create("teemo.png");
 			clear->setPosition(vs.width / 2 + 130, vs.height / 2);
 			clear->setScale(1.3);
-			addChild(clear, 10);
+			addChild(clear, 4);
 
 			auto fi_clear = FadeIn::create(0.5);
 			auto st_clear = ScaleTo::create(0.5, 0.7);
@@ -2060,10 +1982,10 @@ void Game::gameStep(float dt)
 				auto st_clear = ScaleTo::create(0.5, 0.5);
 				auto sp_clear = Spawn::create(mt_clear, st_clear, NULL);
 
-				clear2 = Sprite::create("clear.png");
-				clear2->setPosition(visibleSize.width / 2 + 180, visibleSize.height - 170);
+				clear2 = Sprite::create("teemo.png");
+				clear2->setPosition(visibleSize.width / 2 + 220, visibleSize.height - 140);
 				clear2->setScale(0.2);
-				addChild(clear2, 10);
+				addChild(clear2, 5);
 				clear2->runAction(sp_clear);
 
 				gameEnd->setVisible(true);
@@ -2092,9 +2014,8 @@ void Game::gameStep(float dt)
 
 				////////////////////////////////显示数据统计
 				gameEnd->setVisible(true);
+				menuNextLevel->setVisible(true);
 				//剩余图标
-				statisticTitle->setVisible(true);
-				pointer1->setVisible(true);
 				title1->setVisible(true);
 				leftIcon_label->setString(StringUtils::format("%d", statistic_LeftIcon));
 				leftIcon_label->setVisible(true);
@@ -2102,11 +2023,9 @@ void Game::gameStep(float dt)
 
 				leftBonus_label->setVisible(true);
 				leftBonus_label->setString(StringUtils::format("%d", statistic_LeftBonus));
-				pointer2->setVisible(true);
 				title2->setVisible(true);
 
 				//单个最多
-				pointer3->setVisible(true);
 				title3->setVisible(true);
 				singleMost_label->setString(StringUtils::format("%d", statistic_SingleMost));
 				singleMost_label->setVisible(true);
@@ -2120,57 +2039,48 @@ void Game::gameStep(float dt)
 						statistic_MostIcon = (*map_it1).second;
 					}
 				}
-				pointer4->setVisible(true);
+
 				title4->setVisible(true);
 				mostIcon_label->setString(StringUtils::format("%d", statistic_MostIcon));
 				mostIcon_label->setVisible(true);
 
 				//时间
-				pointer5->setVisible(true);
 				title5->setVisible(true);
 				timer_label->setVisible(true);
 				timer_label->setString(StringUtils::format("%0.1f", statistic_Time / 1000000)); //真机得除1000000
 
-																								//4杀
-				pointer6->setVisible(true);
 				title6->setVisible(true);
 				fourKill_label->setVisible(true);
 				fourKill_label->setString(StringUtils::format("%d", four_kill));
 
 				//5杀
-				pointer7->setVisible(true);
 				title7->setVisible(true);
 				fiveKill_label->setVisible(true);
 				fiveKill_label->setString(StringUtils::format("%d", five_kill));
 
 				//6杀
-				pointer8->setVisible(true);
 				title8->setVisible(true);
 				sixKill_label->setVisible(true);
 				sixKill_label->setString(StringUtils::format("%d", six_kill));
 
 				//7杀
-				pointer9->setVisible(true);
 				title9->setVisible(true);
 				sevenKill_label->setVisible(true);
 				sevenKill_label->setString(StringUtils::format("%d", seven_kill));
 
 				//超神
-				pointer10->setVisible(true);
 				title10->setVisible(true);
 				legendaryKill_label->setVisible(true);
 				legendaryKill_label->setString(StringUtils::format("%d", legendary_kill));
-
-
-				menuNextLevel->setVisible(true);
-				nextLevelLabel->setVisible(true);
 
 
 			}
 			else//添加失败层
 			{
 				auto failDialog = FailDialogPrefab::create();
+				failDialog->setScale(0.00001f);
 				this->addChild(failDialog, 10);
+				failDialog->runAction(Sequence::create(DelayTime::create(0.5f), EaseOut::create(ScaleTo::create(0.5f, 1.0f), 0.75f), nullptr));
 
 				//播放音效
 				SimpleAudioEngine::getInstance()->playEffect("lose.OGG");
