@@ -486,8 +486,8 @@ bool Game::init()
 	addChild(legendaryKill_label, 6);
 
 	//////////////// обр╩╧ь menuitem
-	auto nextLevel_normal = Sprite::create("nextLevelBtn_1.png");
-	auto nextLevel_selected= Sprite::create("nextLevelBtn_2.png");
+	auto nextLevel_normal = Sprite::create("nextLevelBtn_2.png");
+	auto nextLevel_selected= Sprite::create("nextLevelBtn_1.png");
 	auto nextLevel_item = MenuItemSprite::create(nextLevel_normal, nextLevel_selected,
 		CC_CALLBACK_1(Game::goToNextLevel, this));
 	menuNextLevel = Menu::create(nextLevel_item, nullptr);
